@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://localhost/">
+    <head>
+        <title th:remove="all">Tài khoản đã được mở khóa</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>
+		<p style="margin-top: 1rem;">Tài khoản của bạn đã bị khóa với lý do sau:</p>
+		<span th:text="${reason}"></span>
+
+		<hr style="margin-top: 1rem;"/>
+		<p>Rạng Đông Smart Lighting</p>
+    </body>
+</html>

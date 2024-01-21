@@ -1,0 +1,92 @@
+
+
+// CREATE TABLE `logaction` (
+//   `id` bigint NOT NULL AUTO_INCREMENT,
+//   `devicecode` varchar(45) DEFAULT NULL,
+//   `actionstatus` int DEFAULT NULL,
+//   `actionlog` varchar(45) DEFAULT NULL,
+//   `time` datetime DEFAULT NULL,
+//   `createddate` datetime DEFAULT NULL,
+//   `updateDate` datetime DEFAULT NULL,
+//   PRIMARY KEY (`id`)
+// )
+
+{
+    "code": "0",
+    "statusCode": "200",
+    "content": {
+        "total": 7,
+        "items": [
+            {
+                "id": 4,
+                "deviceCode": "oclock",
+                "deviceName": "Đồng hồ",
+                "actionStatus": 0,
+                "actionLog": "ON",
+                "time": "2023-12-13T22:11:00",
+                "createdDate": "2024-01-18T14:40:37",
+                "updatedDate": "2024-01-18T14:40:37"
+            },
+            {
+                "id": 3,
+                "deviceCode": "oclock",
+                "deviceName": "Đồng hồ",
+                "actionStatus": 1,
+                "actionLog": "ON",
+                "time": "2024-12-13T22:11:00",
+                "createdDate": "2024-01-18T14:40:32",
+                "updatedDate": "2024-01-18T14:40:32"
+            },
+            {
+                "id": 2,
+                "deviceCode": "oclock",
+                "deviceName": "Đồng hồ",
+                "actionStatus": 1,
+                "actionLog": "ON",
+                "time": "2025-12-13T22:11:00",
+                "createdDate": "2024-01-18T14:39:24",
+                "updatedDate": "2024-01-18T14:39:24"
+            },
+            {
+                "id": 6,
+                "deviceCode": "door",
+                "deviceName": "cửa",
+                "actionStatus": 0,
+                "actionLog": "UNLOCK",
+                "time": "2023-12-14T09:11:00",
+                "createdDate": "2024-01-18T14:42:10",
+                "updatedDate": "2024-01-18T14:42:10"
+            },
+            {
+                "id": 5,
+                "deviceCode": "door",
+                "deviceName": "cửa",
+                "actionStatus": 0,
+                "actionLog": "LOCK",
+                "time": "2023-12-13T22:11:00",
+                "createdDate": "2024-01-18T14:41:18",
+                "updatedDate": "2024-01-18T14:41:18"
+            },
+            {
+                "id": 8,
+                "deviceCode": "led1",
+                "deviceName": "đèn ",
+                "actionStatus": 1,
+                "actionLog": "ON",
+                "time": "2024-12-14T09:11:00",
+                "createdDate": "2024-01-18T14:42:34",
+                "updatedDate": "2024-01-18T14:42:34"
+            },
+            {
+                "id": 7,
+                "deviceCode": "led1",
+                "deviceName": "đèn ",
+                "actionStatus": 0,
+                "actionLog": "ON",
+                "time": "2023-12-14T09:11:00",
+                "createdDate": "2024-01-18T14:42:26",
+                "updatedDate": "2024-01-18T14:42:26"
+            }
+        ]
+    }
+}

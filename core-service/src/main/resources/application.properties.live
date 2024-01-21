@@ -1,0 +1,106 @@
+spring.application.name=auth-service
+eureka.client.service-url.default-zone=http://localhost:8761/eureka
+server.port=${SERVER_PORT:9201}
+
+#DataSource MySQL
+spring.jpa.database-platform = ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.MySQL5Dialect}
+spring.jpa.generate-ddl=true
+#spring.jpa.hibernate.ddl-auto = create-drop
+#spring.jpa.hibernate.ddl-auto = drop
+#spring.jpa.hibernate.ddl-auto = update
+spring.jpa.hibernate.ddl-auto = none
+#spring.jpa.show-sql = true
+hibernate.hbm2ddl.auto=none
+hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+
+# MySQL Server IOT_Portal, schema: ral
+spring.datasource.driver-class-name=${SPRING_DATASOURCE_DRIVER:com.mysql.cj.jdbc.Driver}
+spring.datasource.jdbc-url=${SPRING_DATASOURCE_URL:jdbc:mysql://10.159.12.108:3306/authentication?useUnicode=yes&characterEncoding=UTF-8}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:ral}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:vnptRal@2021}
+
+# MySQL Local
+#spring.datasource.driver-class-name=${SPRING_DATASOURCE_DRIVER:com.mysql.cj.jdbc.Driver}
+#spring.datasource.url=jdbc:mysql://localhost:3306/portal?useUnicode=yes&characterEncoding=UTF-8
+#spring.datasource.username=root
+#spring.datasource.password=root
+
+## Logging
+#logging.level.root=INFO
+logging.level.org.hibernate.SQL=${LOGGING_LEVEL_ORG_HIBERNATE_SQL:TRACE}
+#show sql values
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
+#output file log
+#logging.file.name=apiportal.log
+#logging.level.org.springframework.jdbc.core = TRACE
+
+# App Properties Config JWT
+#spring.jwt.secret= VNPT_IOT_PORTAL
+#spring.jwt.secret.local= VNPT_IOT_PORTAL_LOCAL
+spring.jwt.expiration = 9000000
+
+#set ignore null value in JSON
+spring.jackson.default-property-inclusion=non-null
+
+#Api call config
+spring.post.call.asar.url=${SPRING_POST_CALL_ASAR_URL:http://10.159.12.107:9999/~/vnpt.it/icc}
+spring.post.call.asar.aai.value=${SPRING_POST_CALL_ASAR_AAI_VALUE:(N|R)([0-9a-zA-Z\\.\\-\\_])*(\\.company)}
+spring.post.call.role.iot.core.value=${SPRING_POST_CALL_ROLE_IOT_CORE_VALUE:/SuperTester}
+#spring.post.call.elastic.search.uri.http=http://10.159.12.108:3333/requestprimitivehttp/_search
+#spring.post.call.elastic.search.uri.mqtt=http://10.159.12.108:3333/requestprimitivemqtt/_search
+#spring.post.call.elastic.search.uri.connectivity = http://10.159.12.108:3333/connectivity/_search
+
+#Email config
+#https://myaccount.google.com/lesssecureapps
+#spring.mail.from=${SPRING_MAIL_FROM:iot.vnpt.platform@gmail.com}
+#spring.mail.host=${SPRING_MAIL_HOST:smtp.gmail.com}
+#spring.mail.port=${SPRING_MAIL_PORT:587}
+#spring.mail.username=${SPRING_MAIL_USERNAME:iot.vnpt.platform}
+#spring.mail.password=${SPRING_MAIL_PASSWORD:RfR6Y&$%}
+
+spring.mail.from=${SPRING_MAIL_FROM:support.iot@vnpt.vn}
+spring.mail.host=${SPRING_MAIL_HOST:smtp.vnpt.vn}
+spring.mail.port=${SPRING_MAIL_PORT:587}
+spring.mail.username=${SPRING_MAIL_USERNAME:support.iot}
+spring.mail.password=${SPRING_MAIL_PASSWORD:ufThR#$2}
+
+# Other properties
+spring.mail.properties.mail.smtp.auth=${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:true}
+spring.mail.properties.mail.smtp.starttls.enable=${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
+spring.mail.properties.mail.smtp.starttls.required=${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED:true}
+spring.mail.properties.mail.smtp.connectiontimeout=10000
+spring.mail.properties.mail.smtp.timeout=10000
+spring.mail.properties.mail.smtp.writetimeout=10000
+
+#ElasticSearch config
+elasticsearch.host=${ELASTICSEARCH_HOST:10.159.12.108}
+elasticsearch.port=${ELASTICSEARCH_PORT:3333}
+
+#redis config
+redis.cache.url=${REDIS_CACHE_URL:10.159.12.107}
+redis.cache.port=${REDIS_CACHE_PORT:8768}
+redis.cache.password=${REDIS_CACHE_PASSWORD:qwe@1fger%}
+redis.cache.timeout=${REDIS_CACHE_TIMEOUT:10000}
+
+redis.cache.max.idle=20
+redis.cache.min.idle=10
+redis.cache.max.total=40
+redis.cache.max.wait.millis=10000
+#schedule send Report
+scheduler.cron.expression=${SCHEDULER_CRON_EXPRESSION:59 59 23 25 * ?}
+#scheduler.cron.expression=0/30 * * * * ?
+
+notification.engine.url=${NOTIFICATION_ENGINE_URL:http://10.159.12.107:5555/notify/handler}
+
+schedule.handler.url=${SCHEDULE_HANDLER_URL:http://10.159.12.107:3333}
+
+#end.of.month.cron=${END_OF_MONTH_CRON:59 59 23 25 * ? *}
+end.of.month.cron=${END_OF_MONTH_CRON:59 59 23 25 * ? *}
+
+#file storgage dir
+file.upload.storageDir=${FILE_UPLOAD_TEMDIR:/home/ubuntu/storage/}
+app.homepage=http://localhost:9200
+module-auth.private-key=MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCEiiLjDlVEtGzXNFMf4JwUFEbYYjCZvBaKtP7Y8Nye473SM2jz368aei60QDIpcQlgy1DbZK9AuyOvH8EJmpEYW9zz/kNnz223VlIZMuLRFlwHe0XPnaa87SDZ8Yc4uv1SKoGSD+UEGvE4M+v0xYzmUM8MauZ8rHFOx/97Mx5WrRLgMMOH/3Sdz610CALS/0L/1O0AtY+Uyvw6jiuObcH50PnBSBsXZGjVERDEsSTztaDzXKC7VUXDGlgxACtfJ6FJAGAWm9wq24QIqKLl5LLI1Qn/2R7PlDr++AaZHudEM1rkuXrC9Labzwsb0s4FgE/qlLj/OSTZctgx2VJr4I4ZAgMBAAECggEASzzrTv9s8iKGAqhmY5sqns9f5CfhNPQry7OxU89vPhdEQ1YBxyb8jMg9SP+EOjg7vaHNFa4TOmjBegFJoL0Ijs5fIHb/Jqf+vWuYEUvsrArIVUrqN1BkPa1Sz8WnIFItyX3trc+uDuWId4Ip+PpH4NqQnpj0nGN7suAfrH05RLQL7lnjqzHpG6uPQF0LHL1eCsVlGxXpHjQlSckC0SuKXyGAbj20ZEpMVxWCxcwtrvH81E0oXemwk4EVdvF4ihiMP1FFMXLFWPvtabizLXSbd+QRyrfvhSbitr1mY1aOL6d0QoIs8DNfQjUqjNdPfT29wsoTw2ofpMosCKxcRNrd3QKBgQC7xdCWUn1vaqangwnWxpFUoIgQKtbE+omQws80rXinvrlzU4hv7pXjgjJ3LquGayEfKwyVMDt8hUcixIknSb//f8e9BRTs6Q2f31U2aFzXOM8evJjCBasEwM1/Yfd5s59B3qYaF8Dg3ujNcJoRcqP+uDILEZFgDM+UDVVplpZGxwKBgQC0sqn73RS3wVWUTKlmU55gRLOXp+BfaC+2D2CUAkfL7Oix5hesocsjRzpFleQ8RQXo/betf3wkYZa6915ZvIixkMH5gvhg/11eIevEQG1rtnNjApyTR7ImVEuQU/H4s1LwyjFbFCNbtc8RGXc6pYcSwqZ0gGrpTDO7B5PHInYkHwKBgDgKyj6TUCy4wBSu33jiuu1vHCz3HDKeNACoo/8s5x3ppp/tBoOhycqlSTqZC0iLIM+UoaTFSHvZq2mNDwJS2KMBGDQqGBy9UfutRFmAvHTf17FsyIrf9jLs+GhUbPA91AJs2VZgUIjM/t6SBOnANYIIp6b2D1WDfVDKyftBnohxAoGAVkUKhNXrQ0PJkPD8237GmV2ThK9AnyxFwx0aVe+0yXaFLhIVcXUZX/Fsr7Y9bkzh4nfnjqzT3ya8aO0bHaq2dFgRVAekf+LLd9qoDl1YIFnOQxIHIQXU1xndrb12Q++RhKZz4/D8ZJerkZVf6B8JGvrVr79zy4h3Fi8q7aLVVq8CgYBsAXXHvC1ZodXtbXIrqQnbEz/xS/afDjmHKt8vv5RBfrHGkkVB1OzhrPCxdK7/0qvqNehLKYVjg+brMZ/wZGsBGpKW2PMDiI4/157Yy1v/hBlphm4fjgj2ca87mlH/qgiqYD4XRwrm9MJ+gUvqhLcr2KEuUAjmgHV2T10kUy4XIg==
+module-auth.public-key=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhIoi4w5VRLRs1zRTH+CcFBRG2GIwmbwWirT+2PDcnuO90jNo89+vGnoutEAyKXEJYMtQ22SvQLsjrx/BCZqRGFvc8/5DZ89tt1ZSGTLi0RZcB3tFz52mvO0g2fGHOLr9UiqBkg/lBBrxODPr9MWM5lDPDGrmfKxxTsf/ezMeVq0S4DDDh/90nc+tdAgC0v9C/9TtALWPlMr8Oo4rjm3B+dD5wUgbF2Ro1REQxLEk87Wg81ygu1VFwxpYMQArXyehSQBgFpvcKtuECKii5eSyyNUJ/9kez5Q6/vgGmR7nRDNa5Ll6wvS2m88LG9LOBYBP6pS4/zkk2XLYMdlSa+COGQIDAQAB
+
