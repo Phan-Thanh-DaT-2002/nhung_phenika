@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("log-act")
 @Slf4j
+@CrossOrigin("*")//
 public class LogactControler extends BaseController {
     private final String START_LOG = "UserInfo {}";
     private final String END_LOG = "UserInfo {} finished in: {}";
@@ -33,6 +35,9 @@ public class LogactControler extends BaseController {
 
     @Autowired
     Logactionservice service;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @GetMapping()
     public ResponseModel doSearch(
@@ -100,18 +105,32 @@ public class LogactControler extends BaseController {
             Integer customActionStatus= entity.getActionStatus();
             String customActionLog = entity.getActionLog().trim();
             LocalDateTime customTime = entity.getTime();
-                entity.setDeviceCode(customDeviceCode);
-                entity.setActionLog(customActionLog);
-                entity.setActionStatus(customActionStatus);
-                entity.setTime(customTime);
-                entity.setCreatedDate(currentTime);
-                entity.setUpdateDate(currentTime);
-            service.create(entity);
-            ResponseModel responseModel = new ResponseModel();
-            responseModel.setStatusCode(HttpStatus.SC_OK+"");
-            responseModel.setCode(ResponseFontendDefine.CODE_SUCCESS+"");
-            return responseModel;
-        } catch (Exception e) {
+
+            logaction checkExisted = service.findByTime(customTime);
+            if (checkExisted != null) {
+                if (checkExisted.getTime() != null && checkExisted.getActionStatus() != 0) {
+                    ResponseModel responseModel = new ResponseModel();
+                    responseModel.setStatusCode(HttpStatus.SC_OK + "");
+                    responseModel.setCode(ResponseFontendDefine.CODE_ALREADY_EXIST + "");
+                    responseModel.setMessages("Thời gian này đã được setup");
+                    return responseModel;
+                }
+            } else {
+                    entity.setDeviceCode(customDeviceCode);
+                    entity.setActionLog(customActionLog);
+                    entity.setActionStatus(customActionStatus);
+                    entity.setTime(customTime);
+                    entity.setCreatedDate(currentTime);
+                    entity.setUpdateDate(currentTime);
+                    service.create(entity);
+                }
+                messagingTemplate.convertAndSend("/topic/log-act/create", "Log action created!");
+                ResponseModel responseModel = new ResponseModel();
+                responseModel.setStatusCode(HttpStatus.SC_OK + "");
+                responseModel.setCode(ResponseFontendDefine.CODE_SUCCESS + "");
+                return responseModel;
+
+            } catch (Exception e) {
             throw handleException(e);
         } finally {
             log.info(END_LOG, action, sw.getTotalTimeSeconds());
