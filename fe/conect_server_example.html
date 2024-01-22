@@ -14,6 +14,7 @@
 
   <h1>WebSocket Example</h1>
   <div id="message-container"></div>
+  <!-- <button onclick="create()"></button> -->
 
   <!-- <script>
     const socket = new SockJS('http://localhost:8388/log-act/');
@@ -38,7 +39,7 @@
 
 
   <script>
-    const socket = new SockJS('http://localhost:8080/ws-endpoint');
+    const socket = new SockJS('http://localhost:8388/ws-endpoint');
     const stompClient = Stomp.over(socket);
 
     stompClient.connect({}, function (frame) {
@@ -46,6 +47,7 @@
 
       stompClient.subscribe('/topic/log-act/create', function (message) {
         console.log('Received message: ' + message.body);
+        console.log('phản hồi yêu cầu hành động ');
 
         const messageContainer = document.getElementById('message-container');
         const newMessage = document.createElement('p');
@@ -53,6 +55,35 @@
         messageContainer.appendChild(newMessage);
       });
     });
+
+
+    // function create() {
+    const data = {
+      "deviceCode": "led1",
+      "actionStatus": 1,
+      "actionLog": "ON",
+      "time": "2288-07-14T08:11:00"
+    };
+
+    // Fetch API để gửi request
+    fetch('http://localhost:8388/log-act/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Server response:', data);
+      })
+    // }
   </script>
 </body>
 
