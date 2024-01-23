@@ -1,8 +1,7 @@
 // Led.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { dataUrl, fetchData, sendData } from "../../AxiosUtility";
-
 
 const Led = () => {
   const [lightStatus, setLightStatus] = useState(false);
@@ -25,19 +24,19 @@ const Led = () => {
 
     fetchDataFromServer();
     // Connect to WebSocket server on ESP8266
-    ws.current = new WebSocket('ws://192.168.1.17:81');
+    ws.current = new WebSocket("ws://192.168.1.17:81");
 
     // Set up WebSocket event listeners
     ws.current.onopen = () => {
-      console.log('Connected to WebSocket');
+      console.log("Connected to WebSocket");
     };
 
     ws.current.onmessage = (event) => {
-      console.log('Message from server:', event.data);
+      console.log("Message from server:", event.data);
     };
 
     ws.current.onclose = () => {
-      console.log('Disconnected from WebSocket');
+      console.log("Disconnected from WebSocket");
     };
 
     // Clean up WebSocket connection on component unmount
@@ -51,7 +50,7 @@ const Led = () => {
     if (ws.current.readyState === WebSocket.OPEN) {
       // Send a "toggle" message to the WebSocket server
       // Update the logic based on your requirements
-      ws.current.send('toggle');
+      ws.current.send("toggle");
       setLightStatus(!lightStatus);
     }
   };
