@@ -11,7 +11,7 @@ const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:3001/data");
+        const response = await fetch("http://localhost:8388/log-act/");
         const jsonData = await response.json();
         const doorData = jsonData.content.items.filter(
           (item) => item.deviceCode === "door"
@@ -46,7 +46,7 @@ const App = () => {
     try {
       const currentTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
       const newCommandData = {
-        deviceCode: "door",
+        deviceCode: "led1",
         deviceName: "cửa",
         actionStatus: newLockStatus ? 0 : 1,
         actionLog: newLockStatus ? "LOCK" : "UNLOCK",
@@ -54,7 +54,7 @@ const App = () => {
       };
 
       // Send the new command to the server
-      await fetch("http://localhost:3001/add-command", {
+      await fetch("http://localhost:8388/log-act/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,13 +77,13 @@ const App = () => {
 
   return (
     <div style={{ width: "100wh", height: "98vh" }}>
-      <Clock time={time} setTime={setTime} />
+      {/* <Clock time={time} setTime={setTime} />
       <DoorComponent
         locked={isDoorLocked}
         doorData={doorData}
         onToggleLock={handleToggleLock}
-      />
-      <Led/>
+      /> */}
+      <Led />
     </div>
   );
 };
