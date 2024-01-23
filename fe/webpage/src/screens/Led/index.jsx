@@ -13,11 +13,7 @@ const Led = () => {
     const fetchDataFromServer = async () => {
       try {
         const responseData = await fetchData(dataUrl);
-        // responseData.items.forEach((command) => {
-        //   if (command.deviceCode === "led1") {
-        //     setLightStatus(command.actionStatus === "ON");
-        //   }
-        // });
+        //some logic here
       } catch (error) {
         console.error(error.message);
       }
