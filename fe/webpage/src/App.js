@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import DoorComponent from "./screens/Door";
-import Clock from "./screens/clock";
+import RTC from "./screens/clock/RTC";
 import Led from "./screens/Led";
+import Alarm from "./screens/alarm";
+import { Grid, Radio,  Col, Row  } from "antd";
 
 const App = () => {
   const [time, setTime] = useState(new Date());
@@ -76,14 +78,20 @@ const App = () => {
   };
 
   return (
-    <div style={{ width: "100wh", height: "98vh" }}>
-      {/* <Clock time={time} setTime={setTime} />
-      <DoorComponent
-        locked={isDoorLocked}
-        doorData={doorData}
-        onToggleLock={handleToggleLock}
-      /> */}
-      <Led />
+    <div style={{ width: "100%", height: "100%" }}>
+      <div style={{    
+        display: "inline-block",
+        position: "relative",
+        left: "50%",
+        transform: "translateX(-50%)"}}>
+        <h1>HỆ THỐNG ĐIỀU KHIỂN CÁC THIẾT BỊ TRONG NHÀ</h1>
+      </div>
+      <div><RTC/></div>
+      <Row gutter={[24, 24]} style={{margin: "0 20px"}}>
+      <Col span={8}><Alarm/></Col>
+      <Col span={8}><Alarm/></Col>
+      <Col span={8}><Alarm/></Col>
+    </Row>
     </div>
   );
 };
