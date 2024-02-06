@@ -1,5 +1,5 @@
 import "./alarm.css";
-import logoAlarm from "../../access/images/alarmIcon.png";
+import logoAlarm from "../../assets/images/alarmIcon.png";
 import React, { useState } from "react";
 import { Button, Flex, Col, Row, Table, Switch } from "antd";
 
