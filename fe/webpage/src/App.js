@@ -9,6 +9,7 @@ const App = () => {
   const [time, setTime] = useState(new Date());
   const [latestDoorStatus, setLatestDoorStatus] = useState("LOCK");
   const [doorData, setDoorData] = useState([]);
+  const [alarmData, setAlarmData] = useState();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,9 +89,9 @@ const App = () => {
       </div>
       <div><RTC/></div>
       <Row gutter={[24, 24]} style={{margin: "0 20px"}}>
-      <Col span={8}><Alarm/></Col>
-      <Col span={8}><Alarm/></Col>
-      <Col span={8}><Alarm/></Col>
+      <Col span={8}><Alarm alarmData={alarmData}/></Col>
+      {/* <Col span={8}><Alarm/></Col>
+      <Col span={8}><Alarm/></Col> */}
     </Row>
     </div>
   );

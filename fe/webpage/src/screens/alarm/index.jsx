@@ -1,5 +1,5 @@
 import "./alarm.css";
-import logoAlarm from "../../access/images/alarmIcon.png";
+import logoAlarm from "../../assets/images/alarmIcon.png";
 import React, { useState } from "react";
 import { Button, Flex, Col, Row, Table, Switch } from "antd";
 
@@ -57,7 +57,7 @@ const data = [
   },
 ];
 
-const Alarm = () => {
+const Alarm = ({ alarmData }) => {
   const [activeStatus, setActiveStatus] = useState(data.map(() => true));
   const handleToggleActive = (checked, index) => {
     setActiveStatus((prevStatus) => {
@@ -73,7 +73,7 @@ const Alarm = () => {
         <div style={{ width: "50%", height: "150px" }}>
           <img
             alt="logoAlarm"
-            style={{ width: "65%", height: "70%", margin: "10px" }}
+            style={{ width: "60%", margin: "10px" }}
             src={logoAlarm}
           />
         </div>
@@ -86,7 +86,7 @@ const Alarm = () => {
         >
           <Col>
             <Button type="primary" size="large">
-              ON/OFF
+              ON
             </Button>
           </Col>
           <Col>
