@@ -38,4 +38,7 @@ public class logaction {
 
     @Column(name = "UPDATEDATE")
     private LocalDateTime updateDate;
+
+    @Column(name = "TITLE")
+    private String title;
 }
