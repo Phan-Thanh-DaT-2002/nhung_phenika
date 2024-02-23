@@ -13,14 +13,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
-        config.setApplicationDestinationPrefixes("/neo");
+        config.setApplicationDestinationPrefixes("/log-act");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
-        .addEndpoint("/neo-endpoint")
-        .setAllowedOrigins("http://localhost:4200")
+        .addEndpoint("/ws-endpoint")
+        .setAllowedOrigins("*")
         .withSockJS();
     }
 
