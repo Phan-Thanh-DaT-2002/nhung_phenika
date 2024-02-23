@@ -20,4 +20,5 @@ public class logactionDTO {
     LocalDateTime time;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
+    String title;
 }
