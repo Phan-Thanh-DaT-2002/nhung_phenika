@@ -89,8 +89,8 @@ const App = () => {
       <div><RTC/></div>
       <Row gutter={[24, 24]} style={{margin: "0 20px"}}>
       <Col span={8}><Alarm/></Col>
-      <Col span={8}><Alarm/></Col>
-      <Col span={8}><Alarm/></Col>
+      {/* <Col span={8}><Alarm/></Col>
+      <Col span={8}><Alarm/></Col> */}
     </Row>
     </div>
   );
