@@ -83,6 +83,41 @@ app.post("/log-act", (req, res) => {
   }
 });
 
+// Route PATCH to update actionStatus for multiple items based on provided IDs
+app.patch("/log-act", (req, res) => {
+  let { ids, actionStatus } = req.body;
+
+  // Chuyển đổi các chuỗi số thành số nguyên
+  ids = ids.map(id => parseInt(id));
+
+  // Check if required fields are present in the request body
+  if (ids && actionStatus !== undefined) {
+    try {
+      // Read existing data from the data.json file
+      const dataFilePath = path.join(__dirname, "data.json");
+      const jsonData = JSON.parse(fs.readFileSync(dataFilePath, "utf8"));
+
+      // Update actionStatus for items with provided IDs
+      jsonData.content.items.forEach(item => {
+        if (ids.includes(item.id)) {
+          item.actionStatus = actionStatus;
+          item.updatedDate = new Date().toISOString();
+        }
+      });
+
+      // Write the updated data back to the data.json file
+      writeDataToFile(jsonData);
+
+      res.json({ success: true, message: "ActionStatus updated successfully." });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error." });
+    }
+  } else {
+    res.status(400).json({ error: "Invalid request body. Missing required fields." });
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
