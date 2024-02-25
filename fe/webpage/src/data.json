@@ -2,8 +2,96 @@
   "code": "0",
   "statusCode": "200",
   "content": {
-    "total": 6,
+    "total": 14,
     "items": [
+      {
+        "id": 14,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:46.127Z",
+        "createdDate": "2024-02-15T14:40:46.131Z",
+        "updatedDate": "2024-02-15T14:40:46.131Z",
+        "title": "Ấn nút trên web"
+      },
+      {
+        "id": 13,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:45.950Z",
+        "createdDate": "2024-02-15T14:40:45.954Z",
+        "updatedDate": "2024-02-15T14:40:45.954Z",
+        "title": "Ấn nút trên web"
+      },
+      {
+        "id": 12,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:45.774Z",
+        "createdDate": "2024-02-15T14:40:45.778Z",
+        "updatedDate": "2024-02-15T14:40:45.778Z",
+        "title": "Ấn nút trên web"
+      },
+      {
+        "id": 11,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:45.566Z",
+        "createdDate": "2024-02-15T14:40:45.573Z",
+        "updatedDate": "2024-02-15T14:40:45.573Z",
+        "title": "Ấn nút trên web"
+      },
+      {
+        "id": 10,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:43.182Z",
+        "createdDate": "2024-02-15T14:40:43.186Z",
+        "updatedDate": "2024-02-15T14:40:43.186Z",
+        "title": "Ấn nút trên web"
+      },
+      {
+        "id": 9,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:42.671Z",
+        "createdDate": "2024-02-15T14:40:42.674Z",
+        "updatedDate": "2024-02-15T14:40:42.674Z",
+        "title": "Ấn nút trên web"
+      },
+      {
+        "id": 8,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:41.230Z",
+        "createdDate": "2024-02-15T14:40:41.235Z",
+        "updatedDate": "2024-02-15T14:40:41.235Z",
+        "title": "Ấn nút trên web"
+      },
+      {
+        "id": 7,
+        "deviceCode": "oclock",
+        "deviceName": "Đồng hồ",
+        "actionStatus": 2,
+        "actionLog": "OFF",
+        "time": "2024-02-15T14:40:40.239Z",
+        "createdDate": "2024-02-15T14:40:40.436Z",
+        "updatedDate": "2024-02-15T14:40:40.436Z",
+        "title": "Ấn nút trên web"
+      },
       {
         "id": 6,
         "deviceCode": "ABC123",

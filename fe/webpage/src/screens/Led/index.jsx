@@ -37,7 +37,7 @@ const Led = () => {
 
     fetchDataFromServer();
     // Connect to WebSocket server on ESP8266
-    ws.current = new WebSocket("ws://172.20.10.13:81");
+    ws.current = new WebSocket("ws://192.168.1.178:81");
 
     // Set up WebSocket event listeners
     ws.current.onopen = () => {

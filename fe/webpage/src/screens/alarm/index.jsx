@@ -32,7 +32,7 @@ const Alarm = () => {
 
   useEffect(() => {
     // Connect to WebSocket server on ESP8266
-    ws.current = new WebSocket("ws://172.20.10.13:81");
+    ws.current = new WebSocket("ws://192.168.1.178:81");
 
     // Set up WebSocket event listeners
     ws.current.onopen = () => {
@@ -40,10 +40,10 @@ const Alarm = () => {
     };
 
     ws.current.onmessage = (event) => {
-      setEspMessage(event.dataF);
+      setEspMessage(event.data);
       console.log("Message from server:", event.data);
     };
-  }, [espMessage]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -123,20 +123,25 @@ const Alarm = () => {
 
   useEffect(() => {
     if (espMessage) {
+      console.log(espMessage);
+
       // Kiểm tra xem espMessage đã được khởi tạo chưa
       const messages = espMessage.split("=");
       const device = messages[0];
       const status = messages[1];
       if (device === "oclock") {
         setButtonText(status === "ON" ? "ON" : "OFF");
+        setLoading(false);
       }
+      console.log(device);
+      console.log(status);
     }
   }, [espMessage]);
 
   return (
-    <div className="boxAlarm">
+    <div className="boxAlarm" style={{ backgroundColor: "#fff" }}>
       <Flex>
-        <div style={{ width: "50%", height: "150px" }}>
+        <div style={{ width: "15vw", height: "15vh" }}>
           <img
             alt="logoAlarm"
             style={{ width: "60%", margin: "10px" }}
