@@ -11,6 +11,7 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -27,6 +28,8 @@ public class Logactionservicempl implements Logactionservice {
     private final String START_LOG = " start setup mu";
     private final String END_LOG = "end setup mu";
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     logactionRepositori repo;
@@ -59,12 +62,51 @@ public class Logactionservicempl implements Logactionservice {
         repo.deleteById(id);
     }
 
+    @Override
+    public ResponseModel createMultiple(List<logaction> DTOs) {
+        ResponseModel responseModel = new ResponseModel();
+        LocalDateTime currentTime = LocalDateTime.now();
+        // tim nhung ban ghi bi trung lap
+        for (logaction DTO : DTOs) {
+            LocalDateTime customTime = DTO.getTime();
+            Optional<logaction> checkExisted = repo.findByTime(customTime);
+            if (checkExisted.isPresent()) {
+                if (checkExisted.get().getActionStatus() != 0) {
+                    responseModel.setStatusCode(HttpStatus.SC_OK + "");
+                    responseModel.setCode(ResponseFontendDefine.CODE_ALREADY_EXIST + "");
+                    responseModel.setMessages("Thời gian " + customTime + " đã được setup");
+                    return responseModel;
+                }
+            }
+        }
 
+            for (logaction DTO : DTOs) {
+                // tien hanh them ban ghi
+                String customDeviceCode = DTO.getDeviceCode().trim();
+                Integer customActionStatus = DTO.getActionStatus();
+                String customActionLog = DTO.getActionLog().trim();
+                LocalDateTime customTime = DTO.getTime();
+                String customTitle = DTO.getTitle().trim();
+                DTO.setDeviceCode(customDeviceCode);
+                DTO.setActionLog(customActionLog);
+                DTO.setActionStatus(customActionStatus);
+                DTO.setTime(customTime);
+                DTO.setCreatedDate(currentTime);
+                DTO.setUpdateDate(currentTime);
+                DTO.setTitle(customTitle);
+                repo.save(DTO);
+            }
+            responseModel.setStatusCode(HttpStatus.SC_OK + "");
+            responseModel.setCode(ResponseFontendDefine.CODE_SUCCESS + "");
+            return responseModel;
+
+    }
     @Override
     public Page<logactionDTO> doSearch(String deviceCode,
                                        String fromDate,
                                        String toDate,
-                                       Pageable paging) {
+                                       Pageable paging
+    ) {
 
         LocalDateTime dateFrom = null;
         LocalDateTime dateTo = null;
@@ -74,7 +116,7 @@ public class Logactionservicempl implements Logactionservice {
         if(toDate != null){
             dateTo = LocalDateTime.parse(toDate);
         }
-        return repo.doSearch(deviceCode, dateFrom ,dateTo, paging);
+        return repo.doSearch(deviceCode, dateFrom ,dateTo,paging);
 
     }
 

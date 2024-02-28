@@ -54,27 +54,29 @@ const Alarm = () => {
 
   const handleCreate = async (values) => {
     try {
-      // console.log(999, values);
-  
+      console.log(999, values);
+      var newArray = [];
       // Lặp qua mỗi giá trị thời gian trong mảng values.time
       for (const timeValue of values.time) {
-        // Chuyển đổi thời gian sang định dạng ISO 8601
         const timeISO = new Date(timeValue).toISOString();
-  
-        // Gửi yêu cầu POST để thêm dữ liệu mới
-        await axios.post("http://localhost:8388/log-act", {
-          ...values,
-          deviceCode: "oclock",
-          deviceName: "Đồng hồ",
-          actionStatus: 1,
-          actionLog: "ON",
-          time: timeISO,
-          createdDate: moment().toISOString(),
-          updatedDate: moment().toISOString(),
-        });
-  
-        console.log("Request sent for time:", timeValue);
+        newArray.push(
+            {
+            ...values,
+            deviceCode: "oclock",
+            deviceName: "Đồng hồ",
+            actionStatus: 1,
+            actionLog: "ON",
+            time: timeISO,
+          }
+        )
       }
+      console.log(22, newArray);
+        // Chuyển đổi thời gian sang định dạng ISO 8601
+        
+        // Gửi yêu cầu POST để thêm dữ liệu mới
+        await axios.post("http://localhost:8388/log-act/create-multiple", newArray);
+  
+        // console.log("Request sent for time:", );
   
       // Sau khi thêm thành công, tải lại dữ liệu
       fetchData();
@@ -94,12 +96,8 @@ const Alarm = () => {
       // Thu thập các ID của các mục đã chọn
       const selectedIDs = selectedRowKeys;
       console.log(666, selectedIDs);
-  
       // Gọi API PATCH để sửa actionStatus của các ID đã chọn thành 2
-      await axios.patch("http://localhost:8388/log-act", {
-        ids: selectedIDs,
-        actionStatus: 2
-      });
+      await axios.patch("http://localhost:8388/log-act/delete-multiple", selectedIDs);
   
       // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
       fetchData();
@@ -133,9 +131,11 @@ const Alarm = () => {
   const fetchData = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8388/log-act?deviceCode=oclock"
+        // "http://localhost:8388/log-act/?deviceCode=oclock"
+           "http://localhost:8388/log-act/?deviceCode=oclock"
       );
-      setAlarmData(response.data);
+      setAlarmData(response.data.content.items);
+      // console.log("",response.data.content.items);
       setActiveStatus(response.data.map(() => true));
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -149,53 +149,6 @@ const Alarm = () => {
       return newStatus;
     });
     console.log(111, activeStatus);
-  };
-
-  const handleToggleONOFF = async () => {
-    try {
-      // Lọc những lệnh trong alarmData có actionStatus là 1 và time > current time
-      const filteredCommands = alarmData.filter(
-        (command) =>
-          command.actionStatus === 1 && moment(command.time).isAfter(moment())
-      );
-
-      if (filteredCommands.length > 0) {
-        // Track thời gian của lệnh gần nhất
-        const nearestCommand = filteredCommands.sort((a, b) =>
-          moment(a.time).diff(moment(b.time))
-        )[0];
-
-        // Thay trạng thái actionLog của tất cả các lệnh thành ON và thay đổi actionStatus của lệnh đó thành 2
-        const updatedAlarmData = alarmData.map((command) => {
-          if (command.id === nearestCommand.id) {
-            return {
-              ...command,
-              actionStatus: 2,
-              actionLog: "ON",
-            };
-          }
-        });
-
-        setAlarmData(updatedAlarmData);
-
-        // Gọi API để tạo một lệnh mới trong dữ liệu lưu trữ với actionStatus là 2
-        await axios.post("http://localhost:8388/log-act", {
-          deviceCode: nearestCommand.deviceCode,
-          deviceName: nearestCommand.deviceName,
-          actionStatus: 2,
-          actionLog: "ON",
-          time: moment().toISOString(),
-          createdDate: moment().toISOString(),
-          updatedDate: moment().toISOString(),
-          title: "Ấn nút trên web",
-        });
-
-        // Sau khi gửi yêu cầu thành công, cập nhật lại dữ liệu bằng cách gọi fetchData
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Error toggling ON/OFF:", error);
-    }
   };
 
   useEffect(() => {
@@ -231,7 +184,7 @@ const Alarm = () => {
             {loading ? ( // Kiểm tra trạng thái loading trước khi hiển thị nút
               <Spin />
             ) : (
-              <Button type="primary" size="large" onClick={handleToggleONOFF}>
+              <Button type="primary" size="large">
                 {buttonText}
               </Button>
             )}
@@ -284,7 +237,7 @@ const Alarm = () => {
             ),
           },
         ]}
-        dataSource={alarmData.filter(item => item.actionStatus === 1).map((item, index) => ({
+        dataSource={alarmData.map((item, index) => ({
           ...item,
           active: activeStatus[index],
           key: item.id, // Sử dụng một trường duy nhất trong dữ liệu làm key

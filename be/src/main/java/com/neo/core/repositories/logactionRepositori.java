@@ -18,7 +18,7 @@ public interface logactionRepositori  extends JpaRepository<logaction, Long> {
 
     @Query(value = "SELECT new com.neo.core.dto.logactionDTO(v.id, u.deviceCode, u.deviceName, v.actionStatus, v.actionLog, v.time, v.createdDate, v.updateDate, v.title) " +
             "FROM logaction v LEFT JOIN device u ON u.deviceCode = v.deviceCode " +
-            "WHERE 1=1 " +
+            "WHERE v.actionStatus in(1,2) " +
             "AND (TRIM(:deviceCode) IS NULL OR LOWER(v.deviceCode) LIKE LOWER(CONCAT('%', TRIM(:deviceCode), '%'))) " +
             "AND (:dateFrom IS NULL OR v.createdDate >= :dateFrom) " +
             "AND (:dateTo IS NULL OR v.createdDate <= :dateTo)")
@@ -26,7 +26,8 @@ public interface logactionRepositori  extends JpaRepository<logaction, Long> {
             @Param("deviceCode") String deviceCode,
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,
-            Pageable paging);
+            Pageable paging
+    );
 
 
     @EntityGraph(attributePaths = {logaction.Fields.time})
