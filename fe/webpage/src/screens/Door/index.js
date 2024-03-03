@@ -6,11 +6,13 @@ import axios from 'axios';
 import moment from 'moment';
 import AddModal from '../../components/AddModal';
 import EditModal from '../../components/EditModal';
+import URL from '../../components/GlobalConst/globalconst';
+import globalSignal from '../../components/GlobalConst/GlobalSignal';
 
-const Door = () => {
+const Door = ({ textDoor, setMessage, sendData }) => {
   const [doorData, setDoorData] = useState([]);
   const [activeStatus, setActiveStatus] = useState([]);
-  const [buttonText, setButtonText] = useState("");
+  const [buttonText, setButtonText] = useState(textDoor);
   const [espMessage, setEspMessage] = useState();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const ws = useRef(null);
@@ -35,41 +37,49 @@ const Door = () => {
   ];
   const historyColumns = [
     {
-      dataIndex: 'deviceCode',
-      title: 'deviceCode',
+      dataIndex: "deviceCode",
+      title: "deviceCode",
       render: (text, record) => <p>{text}</p>,
     },
     {
-      dataIndex: 'deviceName',
-      title: 'deviceName',
+      dataIndex: "deviceName",
+      title: "deviceName",
       render: (text) => <p>{text}</p>,
     },
     {
-      dataIndex: 'actionStatus',
-      title: 'actionStatus',
+      dataIndex: "actionStatus",
+      title: "actionStatus",
       render: (text) => (
-        <p>{text == 2 ? 'Done' : text == 1 ? 'Active' : 'UnActive'}</p>
+        <p>{text === 2 ? "UnActive" : text === 1 ? "Active" : "Deleted"}</p>
       ),
     },
     {
-      dataIndex: 'title',
-      title: 'title',
+      dataIndex: "actionLog",
+      title: "actionLog",
+      render: (text) => (
+        console.log(text),
+        <p>{text === 'OFF' ? "Close" : "Open"}</p>
+      ),
+    },
+    {
+      dataIndex: "title",
+      title: "title",
       render: (text, record) => <a href="/#">{record.title}</a>,
     },
     {
-      dataIndex: 'time',
-      title: 'time',
-      render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
+      dataIndex: "time",
+      title: "time",
+      render: (text) => moment(text).format("HH:mm DD/MM/YYYY"),
     },
     {
-      dataIndex: 'createdDate',
-      title: 'createdDate',
-      render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
+      dataIndex: "createdDate",
+      title: "createdDate",
+      render: (text) => moment(text).format("HH:mm DD/MM/YYYY"),
     },
     {
-      dataIndex: 'updatedDate',
-      title: 'updatedDate',
-      render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
+      dataIndex: "updatedDate",
+      title: "updatedDate",
+      render: (text) => moment(text).format("HH:mm DD/MM/YYYY"),
     },
   ];
   const showHistoryModal = () => {
@@ -111,7 +121,7 @@ const Door = () => {
           deviceCode: 'door',
           deviceName: 'Cửa',
           actionStatus: 1,
-          actionLog: 'ON',
+          actionLog: values.actionLog,
           time: timeISO,
         });
       }
@@ -162,9 +172,12 @@ const Door = () => {
     setEditModalVisible(false);
     try {
       console.log(999, values);
-      await axios.patch(`http://localhost:8388/log-act/update/${values.id}`, {
+      await axios.put(`http://localhost:8388/log-act/edit`, {
+        id: values.id,
+        deviceCode: values.deviceCode,
+        deviceName: values.deviceName,
         actionStatus: values.actionStatus,
-        actionLog: 'ON',
+        actionLog: values.actionLog,
         time: values.time,
         title: values.title,
       });
@@ -175,29 +188,34 @@ const Door = () => {
     }
   };
 
+
   useEffect(() => {
-    // Connect to WebSocket server on ESP8266
-    ws.current = new WebSocket('ws://192.168.146.115:8000/ws');
+    setButtonText(textDoor);
+  }, [textDoor]);
 
-    // Set up WebSocket event listeners
-    ws.current.onopen = () => {
-      ws.current.send('Connected to WebSocket');
-      console.log('Connected to WebSocket');
-    };
+  // useEffect(() => {
+  //   // Connect to WebSocket server on ESP8266
+  //   ws.current = new WebSocket(URL);
 
-    ws.current.onmessage = (event) => {
-      // Nhận thông điệp từ server và chuyển đổi nó thành trạng thái buttonText
-      const message = event.data;
-      if (message === "doorStatus=ON" || message === "doorStatus=OFF") {
-        setButtonText(message === "doorStatus=ON" ? "ON" : "OFF");
-      }
-    };
+  //   // Set up WebSocket event listeners
+  //   ws.current.onopen = () => {
+  //     ws.current.send('Connected to WebSocket');
+  //     console.log('Connected to WebSocket');
+  //   };
 
-    // Cleanup function
-    return () => {
-      ws.current.close(); // Đóng kết nối WebSocket khi component bị unmount
-    };
-  }, []);
+  //   ws.current.onmessage = (event) => {
+  //     // Nhận thông điệp từ server và chuyển đổi nó thành trạng thái buttonText
+  //     const message = event.data;
+  //     if (message === "DOORStatus_ON" || message === "DOORStatus_OFF") {
+  //       setButtonText(message === "DOORStatus_ON" ? "ON" : "OFF");
+  //     }
+  //   };
+
+  //   // Cleanup function
+  //   return () => {
+  //     ws.current.close(); // Đóng kết nối WebSocket khi component bị unmount
+  //   };
+  // }, []);
 
   useEffect(() => {
     fetchData();
@@ -210,32 +228,39 @@ const Door = () => {
         'http://localhost:8388/log-act/?deviceCode=door'
       );
       setDoorData(response.data.content.items);
-      // setDoorData(response.data);
-      console.log(999, doorData);
-      // console.log("",response.data.content.items);
+      sendData(response.data.content.items);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
 
-  const changeSwitch = async (id, checked) => {
-    if (!id) return;
+  const changeSwitch = async (record, checked) => {
+    if (!record.id) return;
     // setActiveStatus(checked);
-    console.log(activeStatus);
+    // console.log(activeStatus);
     try {
       // Gửi PATCH request để cập nhật actionStatus ngược lại hệ thống
-      await axios.patch(`http://localhost:8388/log-act/update/${id}`, {
-        actionStatus: checked ? 1 : 2, // Nếu checked là true thì actionStatus là 1, ngược lại là 2
+      await axios.put(`http://localhost:8388/log-act/edit`, {
+        id: record.id,
+        deviceCode: record.deviceCode,
+        deviceName: record.deviceName,
+        actionStatus: checked ? 1 : 2,
+        actionLog: record.actionLog,
+        time: record.time,
+        title: record.title,
       });
+      fetchData();
     } catch (error) {
       console.error(error);
     }
   };
+
   const changeStateClick = () => {
     // Gửi thông điệp đến WebSocket server dựa trên trạng thái hiện tại của buttonText
-    const message = `door=${buttonText === "ON" ? "OFF" : "ON"}`;
-    ws.current.send(message); // Gửi thông điệp tới WebSocket server
-    setButtonText((prev) => prev === "ON" ? "OFF" : "ON"); // Cập nhật trạng thái của nút
+    const message = `DOOR_${buttonText === "ON" ? "OFF" : "ON"}`;
+    globalSignal.messageSignal.dispatch(message);
+    // setMessage(message)
+    // ws.current.send(message);
   };
 
   return (
@@ -275,7 +300,7 @@ const Door = () => {
             title="door History"
             open={historyModalVisible}
             onCancel={handleHistoryModalCancel}
-            width={800}
+            width={1000}
             footer={null}
           >
             <Table
@@ -311,7 +336,7 @@ const Door = () => {
                 checkedChildren="ON"
                 unCheckedChildren="OFF"
                 checked={record.actionStatus === 1}
-                onChange={(checked) => changeSwitch(record.id, checked)}
+                onChange={(checked) => changeSwitch(record, checked)}
               />
             ),
           },

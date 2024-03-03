@@ -1,16 +1,19 @@
-import './alarm.css';
-import logoAlarm from '../../assets/images/alarmIcon.png';
-import React, { useState, useEffect, useRef } from 'react';
-import { Button, Flex, Col, Row, Table, Switch, Spin, Modal } from 'antd';
-import axios from 'axios';
-import moment from 'moment';
-import AddModal from '../../components/AddModal';
-import EditModal from '../../components/EditModal';
+import "./alarm.css";
+import logoAlarm from "../../assets/images/alarmIcon.png";
+import React, { useState, useEffect, useRef } from "react";
+import { Button, Flex, Col, Row, Table, Switch, Spin, Modal } from "antd";
+import axios from "axios";
+import moment from "moment";
+import AddModal from "../../components/AddModal";
+import EditModal from "../../components/EditModal";
+import URL from "../../components/GlobalConst/globalconst";
+import dayjs from "dayjs";
+import globalSignal from "../../components/GlobalConst/GlobalSignal";
 
-const Alarm = () => {
+const Alarm = ({ textAlarm, setMessage, sendData }) => {
   const [alarmData, setAlarmData] = useState([]);
   const [activeStatus, setActiveStatus] = useState([]);
-  const [buttonText, setButtonText] = useState("");
+  const [buttonText, setButtonText] = useState(textAlarm);
   const [espMessage, setEspMessage] = useState();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const ws = useRef(null);
@@ -18,10 +21,12 @@ const Alarm = () => {
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const isMounted = useRef(false);
 
   const columns = [
     {
-      dataIndex: 'title',
+      dataIndex: "title",
       render: (text, record) => (
         <a href="/#" onClick={() => showEditModal(record)}>
           {record.title}
@@ -29,47 +34,54 @@ const Alarm = () => {
       ),
     },
     {
-      dataIndex: 'time',
-      render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
+      dataIndex: "time",
+      render: (text) => moment(text).format("HH:mm DD/MM/YYYY"),
     },
   ];
   const historyColumns = [
     {
-      dataIndex: 'deviceCode',
-      title: 'deviceCode',
+      dataIndex: "deviceCode",
+      title: "deviceCode",
       render: (text, record) => <p>{text}</p>,
     },
     {
-      dataIndex: 'deviceName',
-      title: 'deviceName',
+      dataIndex: "deviceName",
+      title: "deviceName",
       render: (text) => <p>{text}</p>,
     },
     {
-      dataIndex: 'actionStatus',
-      title: 'actionStatus',
+      dataIndex: "actionStatus",
+      title: "actionStatus",
       render: (text) => (
-        <p>{text == 2 ? 'Done' : text == 1 ? 'Active' : 'UnActive'}</p>
+        <p>{text === 2 ? "UnActive" : text === 1 ? "Active" : "Deleted"}</p>
       ),
     },
     {
-      dataIndex: 'title',
-      title: 'title',
+      dataIndex: "actionLog",
+      title: "actionLog",
+      render: (text) => (
+        console.log(text), (<p>{text === "OFF" ? "Alarm OFF" : "Alarm ON"}</p>)
+      ),
+    },
+    {
+      dataIndex: "title",
+      title: "title",
       render: (text, record) => <a href="/#">{record.title}</a>,
     },
     {
-      dataIndex: 'time',
-      title: 'time',
-      render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
+      dataIndex: "time",
+      title: "time",
+      render: (text) => moment(text).format("HH:mm DD/MM/YYYY"),
     },
     {
-      dataIndex: 'createdDate',
-      title: 'createdDate',
-      render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
+      dataIndex: "createdDate",
+      title: "createdDate",
+      render: (text) => moment(text).format("HH:mm DD/MM/YYYY"),
     },
     {
-      dataIndex: 'updatedDate',
-      title: 'updatedDate',
-      render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
+      dataIndex: "updatedDate",
+      title: "updatedDate",
+      render: (text) => moment(text).format("HH:mm DD/MM/YYYY"),
     },
   ];
   const showHistoryModal = () => {
@@ -108,10 +120,10 @@ const Alarm = () => {
         const timeISO = new Date(timeValue).toISOString();
         newArray.push({
           ...values,
-          deviceCode: 'oclock',
-          deviceName: 'Đồng hồ',
+          deviceCode: "oclock",
+          deviceName: "Đồng hồ",
           actionStatus: 1,
-          actionLog: 'ON',
+          actionLog: "ON",
           time: timeISO,
         });
       }
@@ -120,7 +132,7 @@ const Alarm = () => {
 
       // Gửi yêu cầu POST để thêm dữ liệu mới
       await axios.post(
-        'http://localhost:8388/log-act/create-multiple',
+        "http://localhost:8388/log-act/create-multiple",
         newArray
       );
 
@@ -130,7 +142,7 @@ const Alarm = () => {
       fetchData();
       setIsModalVisible(false);
     } catch (error) {
-      console.error('Error adding alarm:', error);
+      console.error("Error adding alarm:", error);
     }
   };
 
@@ -146,7 +158,7 @@ const Alarm = () => {
       console.log(666, selectedIDs);
       // Gọi API PATCH để sửa actionStatus của các ID đã chọn thành 2
       await axios.patch(
-        'http://localhost:8388/log-act/delete-multiple',
+        "http://localhost:8388/log-act/delete-multiple",
         selectedIDs
       );
 
@@ -155,49 +167,33 @@ const Alarm = () => {
       // Xóa các mục đã chọn khỏi selectedRowKeys
       setSelectedRowKeys([]);
     } catch (error) {
-      console.error('Error deleting items:', error);
+      console.error("Error deleting items:", error);
     }
   };
   const handleUpdate = async (values) => {
     setEditModalVisible(false);
     try {
       console.log(999, values);
-      await axios.patch(`http://localhost:8388/log-act/update/${values.id}`, {
+      await axios.put(`http://localhost:8388/log-act/edit`, {
+        id: values.id,
+        deviceCode: values.deviceCode,
+        deviceName: values.deviceName,
         actionStatus: values.actionStatus,
-        actionLog: 'ON',
+        actionLog: "ON",
         time: values.time,
         title: values.title,
       });
       fetchData();
       setIsModalVisible(false);
     } catch (error) {
-      console.error('Error updating alarm:', error);
+      console.error("Error updating alarm:", error);
     }
   };
 
   useEffect(() => {
-    // Connect to WebSocket server on ESP8266
-    ws.current = new WebSocket('ws://192.168.146.115:8000/ws');
-
-    // Set up WebSocket event listeners
-    ws.current.onopen = () => {
-      ws.current.send('Connected to WebSocket');
-      console.log('Connected to WebSocket');
-    };
-
-    ws.current.onmessage = (event) => {
-      // Nhận thông điệp từ server và chuyển đổi nó thành trạng thái buttonText
-      const message = event.data;
-      if (message === "alarmStatus=ON" || message === "alarmStatus=OFF") {
-        setButtonText(message === "alarmStatus=ON" ? "ON" : "OFF");
-      }
-    };
-
-    // Cleanup function
-    return () => {
-      ws.current.close(); // Đóng kết nối WebSocket khi component bị unmount
-    };
-  }, []);
+    setButtonText(textAlarm);
+    console.log(111, buttonText, textAlarm);
+  }, [textAlarm]);
 
   useEffect(() => {
     fetchData();
@@ -207,44 +203,126 @@ const Alarm = () => {
     try {
       const response = await axios.get(
         // "http://localhost:8388/log-act/?deviceCode=oclock"
-        'http://localhost:8388/log-act/?deviceCode=oclock'
+        "http://localhost:8388/log-act/?deviceCode=oclock"
       );
       setAlarmData(response.data.content.items);
-      // setAlarmData(response.data);
-      // console.log(999, alarmData);
-      // console.log("",response.data.content.items);
+      sendData(response.data.content.items);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     }
   };
 
-  const changeSwitch = async (id, checked) => {
-    if (!id) return;
+  const changeSwitch = async (record, checked) => {
+    if (!record.id) return;
     // setActiveStatus(checked);
-    console.log(activeStatus);
+    // console.log(activeStatus);
     try {
       // Gửi PATCH request để cập nhật actionStatus ngược lại hệ thống
-      await axios.patch(`http://localhost:8388/log-act/update/${id}`, {
-        actionStatus: checked ? 1 : 2, // Nếu checked là true thì actionStatus là 1, ngược lại là 2
+      await axios.put(`http://localhost:8388/log-act/edit`, {
+        id: record.id,
+        deviceCode: record.deviceCode,
+        deviceName: record.deviceName,
+        actionStatus: checked ? 1 : 2,
+        actionLog: record.actionLog,
+        time: record.time,
+        title: record.title,
       });
+      fetchData();
     } catch (error) {
       console.error(error);
     }
   };
   const changeStateClick = () => {
     // Gửi thông điệp đến WebSocket server dựa trên trạng thái hiện tại của buttonText
-    const message = `alarm=${buttonText === "ON" ? "OFF" : "ON"}`;
-    ws.current.send(message); // Gửi thông điệp tới WebSocket server
-    setButtonText((prev) => prev === "ON" ? "OFF" : "ON"); // Cập nhật trạng thái của nút
+    var message = "ALARM_";
+    if (buttonText === "ON") {
+      message += "OFF";
+    } else if (buttonText === "OFF") {
+      message += "ON";
+    }
+    globalSignal.messageSignal.dispatch(message);
+    console.log(message);
+    console.log(textAlarm, buttonText);
   };
+  useEffect(() => {
+    if (alarmData.length > 0) {
+      const dateObject = new Date(alarmData[0].time);
+
+      const year = dateObject.getUTCFullYear();
+      const month = (dateObject.getUTCMonth() + 1).toString().padStart(2, "0"); // Thêm 1 vì tháng bắt đầu từ 0
+      const day = dateObject.getUTCDate().toString().padStart(2, "0");
+      const hours = dateObject.getUTCHours().toString().padStart(2, "0");
+      const minutes = dateObject.getUTCMinutes().toString().padStart(2, "0");
+      const seconds = dateObject.getUTCSeconds().toString().padStart(2, "0");
+
+      const formattedTime = `${year}${month}${day}${
+        hours + 7
+      }${minutes}${seconds}`;
+      // console.log(formattedTime);
+      // ws.current.send(message);
+    }
+  }, [alarmData]);
+
+  useEffect(() => {
+    const day = new Date().getTime();
+    const newCommand = async () => {
+      await axios.post("http://localhost:8388/log-act/", {
+        deviceCode: "led1",
+        deviceName: "đèn",
+        actionStatus: 0,
+        actionLog: textAlarm,
+        time: dayjs(day),
+        title: "Now",
+      });
+    };
+
+    // Chỉ gọi newCommand khi textLed thay đổi
+    if (isMounted.current && textAlarm !== buttonText) {
+      newCommand();
+      setButtonText(textAlarm);
+    } else {
+      isMounted.current = true;
+    }
+  }, [textAlarm, buttonText]);
+
+  const handleDeleteById = async (id) => {
+    try {
+      // Gọi API PATCH để sửa actionStatus của ID thành 2
+      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, id);
+
+      // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
+  const handleDeviceSignal = ({ id, type }) => {
+    if (type === "ALARM") {
+      handleDeleteById(id);
+    }
+  };
+
+  useEffect(() => {
+    const deviceSignalListener = ({ id, type }) => {
+      handleDeviceSignal({ id, type });
+    };
+
+    globalSignal.deviceSignal.add(deviceSignalListener);
+
+    // Cleanup function
+    return () => {
+      globalSignal.deviceSignal.remove(deviceSignalListener);
+    };
+  }, [fetchData]); // Thêm fetchData vào dependency array để đảm bảo useEffect re-run khi fetchData thay đổi
 
   return (
     <div className="boxAlarm">
       <Flex>
-        <div style={{ width: '50%', height: '150px' }}>
+        <div style={{ width: "50%", height: "150px" }}>
           <img
             alt="logoAlarm"
-            style={{ width: '60%', margin: '10px' }}
+            style={{ width: "60%", margin: "10px" }}
             src={logoAlarm}
           />
         </div>
@@ -253,10 +331,15 @@ const Alarm = () => {
           gutter={[10, 0]}
           justify="space-around"
           align="middle"
-          style={{ width: '50%', height: '150px' }}
+          style={{ width: "50%", height: "150px" }}
         >
           <Col>
-            <Button type="primary" size="large" disabled={!buttonText} onClick={changeStateClick}>
+            <Button
+              type="primary"
+              size="large"
+              disabled={!buttonText}
+              onClick={changeStateClick}
+            >
               {buttonText}
             </Button>
           </Col>
@@ -275,7 +358,7 @@ const Alarm = () => {
             title="Alarm History"
             open={historyModalVisible}
             onCancel={handleHistoryModalCancel}
-            width={800}
+            width={1000}
             footer={null}
           >
             <Table
@@ -306,13 +389,13 @@ const Alarm = () => {
         columns={[
           ...columns,
           {
-            dataIndex: 'active',
+            dataIndex: "active",
             render: (text, record, index) => (
               <Switch
                 checkedChildren="ON"
                 unCheckedChildren="OFF"
                 checked={record.actionStatus === 1}
-                onChange={(checked) => changeSwitch(record.id, checked)}
+                onChange={(checked) => changeSwitch(record, checked)}
               />
             ),
           },
@@ -324,11 +407,11 @@ const Alarm = () => {
             key: item.id,
           }))}
         rowSelection={{
-          type: 'checkbox',
+          type: "checkbox",
           onChange: handleRowSelectionChange,
         }}
         pagination={{
-          position: ['none'],
+          position: ["none"],
         }}
         scroll={{ y: 280 }}
       />

@@ -21,7 +21,9 @@ public interface logactionRepositori  extends JpaRepository<logaction, Long> {
             "WHERE v.actionStatus in(1,2) " +
             "AND (TRIM(:deviceCode) IS NULL OR LOWER(v.deviceCode) LIKE LOWER(CONCAT('%', TRIM(:deviceCode), '%'))) " +
             "AND (:dateFrom IS NULL OR v.createdDate >= :dateFrom) " +
-            "AND (:dateTo IS NULL OR v.createdDate <= :dateTo)")
+            "AND (:dateTo IS NULL OR v.createdDate <= :dateTo)"+
+            "order by v.time asc, v.id asc"
+    )
     Page<logactionDTO> doSearch(
             @Param("deviceCode") String deviceCode,
             @Param("dateFrom") LocalDateTime dateFrom,

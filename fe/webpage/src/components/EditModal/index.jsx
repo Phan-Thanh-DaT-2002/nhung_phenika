@@ -1,15 +1,13 @@
-import { Modal, Form, Input, Switch, DatePicker } from 'antd';
-import { useState, useEffect } from 'react';
-import moment from 'moment';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import dayjs from 'dayjs';
+import { Modal, Form, Input, Switch, DatePicker, Radio } from "antd";
+import { useState, useEffect } from "react";
+import dayjs from "dayjs";
 
 const EditModal = ({ visible, initialValues, onUpdate, onCancel }) => {
   const [form] = Form.useForm();
   const [currentInitialValues, setCurrentInitialValues] =
     useState(initialValues);
   const [actionStatus, setActionStatus] = useState(initialValues.actionStatus);
+  const [actionLog, setActionLog] = useState(initialValues.actionLog);
 
   useEffect(() => {
     if (visible && initialValues) {
@@ -21,8 +19,11 @@ const EditModal = ({ visible, initialValues, onUpdate, onCancel }) => {
   }, [visible, initialValues]);
 
   const handleUpdate = async (values) => {
+    values.actionLog = actionLog;
     values.id = initialValues.id;
-    values.time = values.time.format('YYYY-MM-DD HH:mm:ss');
+    values.deviceName = initialValues.deviceName;
+    values.deviceCode = initialValues.deviceCode;
+    values.time = values.time.format("YYYY-MM-DDTHH:mm:ss");
     console.log(222, values);
     onUpdate(values);
   };
@@ -31,11 +32,16 @@ const EditModal = ({ visible, initialValues, onUpdate, onCancel }) => {
     // Set actionStatus value based on the checked state of the switch
     setActionStatus(checked ? 1 : 2);
   };
+  const handleChoose = (checked) => {
+    console.log(checked.target.value);
+    setActionLog(checked.target.value);
+    // console.log(111, actionLog);
+  };
 
   return (
     <Modal
-      visible={visible}
-      title="Edit Alarm"
+      open={visible}
+      title="Edit Device"
       okText="Save"
       cancelText="Cancel"
       onCancel={onCancel}
@@ -60,17 +66,17 @@ const EditModal = ({ visible, initialValues, onUpdate, onCancel }) => {
         <Form.Item
           name="time"
           label="Time"
-          rules={[{ required: true, message: 'Please select time' }]}
+          rules={[{ required: true, message: "Please select time" }]}
         >
           <DatePicker
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             format="YYYY-MM-DD HH:mm:ss"
             showTime
           />
         </Form.Item>
         <Form.Item
           name="actionStatus"
-          label="On/Off"
+          label="Status"
           initialValue={initialValues.actionStatus}
         >
           <Switch
@@ -79,6 +85,16 @@ const EditModal = ({ visible, initialValues, onUpdate, onCancel }) => {
             onChange={handleSwitchChange}
             checked={actionStatus === 1}
           ></Switch>
+        </Form.Item>
+        <Form.Item>
+          <Radio.Group
+            onChange={handleChoose}
+            defaultValue={initialValues.actionLog}
+            disabled={initialValues.deviceCode === "oclock"}
+          >
+            <Radio value={"ON"}>Thiết bị Mở</Radio>
+            <Radio value={"OFF"}>Thiết bị Đóng</Radio>
+          </Radio.Group>
         </Form.Item>
       </Form>
     </Modal>
