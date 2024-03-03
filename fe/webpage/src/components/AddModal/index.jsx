@@ -34,7 +34,8 @@ const AddModal = ({ visible, onCreate, onCancel }) => {
   const onCheckAllChange = (e) => {
     setCheckedList(e.target.checked ? plainOptions : []);
   };
-  const onChangeTime = (time: Dayjs) => {
+  const onChangeTime = (time) => {
+    time = dayjs(time)
     setChangeTime(time);
   }
   const showtime = () => {
