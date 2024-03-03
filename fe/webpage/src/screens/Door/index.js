@@ -209,8 +209,8 @@ const Door = () => {
         // "http://localhost:8388/log-act/?deviceCode=oclock"
         'http://localhost:8388/log-act/?deviceCode=door'
       );
-      // setDoorData(response.data.content.items);
-      setDoorData(response.data);
+      setDoorData(response.data.content.items);
+      // setDoorData(response.data);
       console.log(999, doorData);
       // console.log("",response.data.content.items);
     } catch (error) {

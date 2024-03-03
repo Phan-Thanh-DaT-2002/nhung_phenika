@@ -209,8 +209,8 @@ const Alarm = () => {
         // "http://localhost:8388/log-act/?deviceCode=oclock"
         'http://localhost:8388/log-act/?deviceCode=oclock'
       );
-      // setAlarmData(response.data.content.items);
-      setAlarmData(response.data);
+      setAlarmData(response.data.content.items);
+      // setAlarmData(response.data);
       // console.log(999, alarmData);
       // console.log("",response.data.content.items);
     } catch (error) {

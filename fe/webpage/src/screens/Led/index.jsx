@@ -211,8 +211,8 @@ const Led = () => {
         // "http://localhost:8388/log-act/?deviceCode=led"
         'http://localhost:8388/log-act/?deviceCode=led1'
       );
-      // setLedData(response.data.content.items);
-      setLedData(response.data);
+      setLedData(response.data.content.items);
+      // setLedData(response.data);
       console.log(999, ledData);
       // console.log("",response.data.content.items);
     } catch (error) {
