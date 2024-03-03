@@ -59,25 +59,26 @@ const Alarm = () => {
       // Lặp qua mỗi giá trị thời gian trong mảng values.time
       for (const timeValue of values.time) {
         const timeISO = new Date(timeValue).toISOString();
-        newArray.push(
-            {
-            ...values,
-            deviceCode: "oclock",
-            deviceName: "Đồng hồ",
-            actionStatus: 1,
-            actionLog: "ON",
-            time: timeISO,
-          }
-        )
+        newArray.push({
+          ...values,
+          deviceCode: "oclock",
+          deviceName: "Đồng hồ",
+          actionStatus: 1,
+          actionLog: "ON",
+          time: timeISO,
+        });
       }
       console.log(22, newArray);
-        // Chuyển đổi thời gian sang định dạng ISO 8601
-        
-        // Gửi yêu cầu POST để thêm dữ liệu mới
-        await axios.post("http://localhost:8388/log-act/create-multiple", newArray);
-  
-        // console.log("Request sent for time:", );
-  
+      // Chuyển đổi thời gian sang định dạng ISO 8601
+
+      // Gửi yêu cầu POST để thêm dữ liệu mới
+      await axios.post(
+        "http://localhost:8388/log-act/create-multiple",
+        newArray
+      );
+
+      // console.log("Request sent for time:", );
+
       // Sau khi thêm thành công, tải lại dữ liệu
       fetchData();
       setIsModalVisible(false);
@@ -85,7 +86,7 @@ const Alarm = () => {
       console.error("Error adding alarm:", error);
     }
   };
-  
+
   const handleRowSelectionChange = (selectedRowKeys) => {
     setSelectedRowKeys(selectedRowKeys);
     console.log(555, selectedRowKeys);
@@ -97,8 +98,11 @@ const Alarm = () => {
       const selectedIDs = selectedRowKeys;
       console.log(666, selectedIDs);
       // Gọi API PATCH để sửa actionStatus của các ID đã chọn thành 2
-      await axios.patch("http://localhost:8388/log-act/delete-multiple", selectedIDs);
-  
+      await axios.patch(
+        "http://localhost:8388/log-act/delete-multiple",
+        selectedIDs
+      );
+
       // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
       fetchData();
       // Xóa các mục đã chọn khỏi selectedRowKeys
@@ -110,7 +114,7 @@ const Alarm = () => {
 
   useEffect(() => {
     // Connect to WebSocket server on ESP8266
-    ws.current = new WebSocket("ws://172.20.10.13:81");
+    ws.current = new WebSocket("ws://192.168.146.115:81/");
 
     // Set up WebSocket event listeners
     ws.current.onopen = () => {
@@ -132,7 +136,7 @@ const Alarm = () => {
     try {
       const response = await axios.get(
         // "http://localhost:8388/log-act/?deviceCode=oclock"
-           "http://localhost:8388/log-act/?deviceCode=oclock"
+        "http://localhost:8388/log-act/?deviceCode=oclock"
       );
       setAlarmData(response.data.content.items);
       // console.log("",response.data.content.items);
@@ -153,20 +157,25 @@ const Alarm = () => {
 
   useEffect(() => {
     if (espMessage) {
+      console.log(espMessage);
+
       // Kiểm tra xem espMessage đã được khởi tạo chưa
       const messages = espMessage.split("=");
       const device = messages[0];
       const status = messages[1];
       if (device === "oclock") {
         setButtonText(status === "ON" ? "ON" : "OFF");
+        setLoading(false);
       }
+      console.log(device);
+      console.log(status);
     }
   }, [espMessage]);
 
   return (
-    <div className="boxAlarm">
+    <div className="boxAlarm" style={{ backgroundColor: "#fff" }}>
       <Flex>
-        <div style={{ width: "50%", height: "150px" }}>
+        <div style={{ width: "15vw", height: "15vh" }}>
           <img
             alt="logoAlarm"
             style={{ width: "60%", margin: "10px" }}
@@ -241,7 +250,7 @@ const Alarm = () => {
           ...item,
           active: activeStatus[index],
           key: item.id, // Sử dụng một trường duy nhất trong dữ liệu làm key
-        }))}  
+        }))}
         rowSelection={{
           type: "checkbox",
           onChange: handleRowSelectionChange,

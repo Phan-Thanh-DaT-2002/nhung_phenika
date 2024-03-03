@@ -4,6 +4,7 @@ import RTC from "./screens/clock/RTC";
 import Led from "./screens/Led";
 import Alarm from "./screens/alarm";
 import { Grid, Radio,  Col, Row  } from "antd";
+import BackGround from "./assets/images/background.png"
 
 const App = () => {
   const [time, setTime] = useState(new Date());
@@ -78,19 +79,31 @@ const App = () => {
   };
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div style={{ height: "100vh", margin:"0", padding:"0",
+    backgroundImage:`url(${BackGround})`, 
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundAttachment: "fixed",
+    backgroundSize: "cover", }}>
+
       <div style={{    
+        height: "10%",
+        margin:"0", padding:"10px 0",
         display: "inline-block",
         position: "relative",
         left: "50%",
         transform: "translateX(-50%)"}}>
         <h1>HỆ THỐNG ĐIỀU KHIỂN CÁC THIẾT BỊ TRONG NHÀ</h1>
       </div>
-      <div><RTC/></div>
+      <div
+      style={{    
+        height: "10%",
+        margin:"10px 0", padding:"10px 0",}}
+      ><RTC/></div>
       <Row gutter={[24, 24]} style={{margin: "0 20px"}}>
-      <Col span={8}><Alarm/></Col>
-      {/* <Col span={8}><Alarm/></Col>
-      <Col span={8}><Alarm/></Col> */}
+      <Col span={8}><Led/></Col>
+      {/* <Col span={8}><Alarm/></Col> */}
+      {/* <Col span={8}><Alarm/></Col> */}
     </Row>
     </div>
   );
