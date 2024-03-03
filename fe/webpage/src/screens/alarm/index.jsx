@@ -1,9 +1,10 @@
 import "./alarm.css";
 import logoAlarm from "../../assets/images/alarmIcon.png";
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Flex, Col, Row, Table, Switch, Spin } from "antd";
+import { Button, Flex, Col, Row, Table, Switch, Spin, Modal } from "antd";
 import axios from "axios";
 import moment from "moment";
+import AddModal from "../../components/AddModal";
 
 const columns = [
   {
@@ -28,7 +29,86 @@ const Alarm = () => {
   const [buttonText, setButtonText] = useState();
   const [espMessage, setEspMessage] = useState();
   const [loading, setLoading] = useState(true);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const ws = useRef(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [historyModalVisible, setHistoryModalVisible] = useState(false);
+
+  // Hàm hiển thị pop-up
+  const showHistoryModal = () => {
+    setHistoryModalVisible(true);
+  };
+
+  // Hàm đóng pop-up
+  const handleHistoryModalCancel = () => {
+    setHistoryModalVisible(false);
+  };
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCreate = async (values) => {
+    try {
+      // console.log(999, values);
+  
+      // Lặp qua mỗi giá trị thời gian trong mảng values.time
+      for (const timeValue of values.time) {
+        // Chuyển đổi thời gian sang định dạng ISO 8601
+        const timeISO = new Date(timeValue).toISOString();
+  
+        // Gửi yêu cầu POST để thêm dữ liệu mới
+        await axios.post("http://localhost:8388/log-act", {
+          ...values,
+          deviceCode: "oclock",
+          deviceName: "Đồng hồ",
+          actionStatus: 1,
+          actionLog: "ON",
+          time: timeISO,
+          createdDate: moment().toISOString(),
+          updatedDate: moment().toISOString(),
+        });
+  
+        console.log("Request sent for time:", timeValue);
+      }
+  
+      // Sau khi thêm thành công, tải lại dữ liệu
+      fetchData();
+      setIsModalVisible(false);
+    } catch (error) {
+      console.error("Error adding alarm:", error);
+    }
+  };
+  
+  const handleRowSelectionChange = (selectedRowKeys) => {
+    setSelectedRowKeys(selectedRowKeys);
+    console.log(555, selectedRowKeys);
+  };
+
+  const handleDelete = async () => {
+    try {
+      // Thu thập các ID của các mục đã chọn
+      const selectedIDs = selectedRowKeys;
+      console.log(666, selectedIDs);
+  
+      // Gọi API PATCH để sửa actionStatus của các ID đã chọn thành 2
+      await axios.patch("http://localhost:8388/log-act", {
+        ids: selectedIDs,
+        actionStatus: 2
+      });
+  
+      // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
+      fetchData();
+      // Xóa các mục đã chọn khỏi selectedRowKeys
+      setSelectedRowKeys([]);
+    } catch (error) {
+      console.error("Error deleting items:", error);
+    }
+  };
 
   useEffect(() => {
     // Connect to WebSocket server on ESP8266
@@ -47,6 +127,7 @@ const Alarm = () => {
 
   useEffect(() => {
     fetchData();
+    // console.log(2222, alarmData);
   }, []);
 
   const fetchData = async () => {
@@ -67,6 +148,7 @@ const Alarm = () => {
       newStatus[index] = checked;
       return newStatus;
     });
+    console.log(111, activeStatus);
   };
 
   const handleToggleONOFF = async () => {
@@ -89,12 +171,7 @@ const Alarm = () => {
             return {
               ...command,
               actionStatus: 2,
-              actionLog: buttonText === "ON" ? "OFF" : "ON",
-            };
-          } else {
-            return {
-              ...command,
-              actionLog: buttonText === "ON" ? "OFF" : "ON",
+              actionLog: "ON",
             };
           }
         });
@@ -106,7 +183,7 @@ const Alarm = () => {
           deviceCode: nearestCommand.deviceCode,
           deviceName: nearestCommand.deviceName,
           actionStatus: 2,
-          actionLog: buttonText === "ON" ? "OFF" : "ON",
+          actionLog: "ON",
           time: moment().toISOString(),
           createdDate: moment().toISOString(),
           updatedDate: moment().toISOString(),
@@ -165,17 +242,34 @@ const Alarm = () => {
             )}
           </Col>
           <Col>
-            <Button type="primary" size="large">
+            <Button type="primary" size="large" onClick={showHistoryModal}>
               History
             </Button>
           </Col>
+          <Modal
+            title="Alarm History"
+            visible={historyModalVisible}
+            onCancel={handleHistoryModalCancel}
+            footer={null} // Không hiển thị footer
+          >
+            <Table
+              columns={columns} // columns bạn đã định nghĩa trước đó
+              dataSource={alarmData} // alarmData là dữ liệu bạn muốn hiển thị
+              pagination={false} // Tắt phân trang
+            />
+          </Modal>
           <Col>
-            <Button type="primary" size="large">
+            <Button type="primary" size="large" onClick={showModal}>
               Add
             </Button>
           </Col>
+          <AddModal
+            visible={isModalVisible}
+            onCreate={handleCreate}
+            onCancel={handleCancel}
+          />
           <Col>
-            <Button type="primary" size="large">
+            <Button type="primary" size="large" onClick={handleDelete}>
               Delete
             </Button>
           </Col>
@@ -195,13 +289,14 @@ const Alarm = () => {
             ),
           },
         ]}
-        dataSource={alarmData.map((item, index) => ({
+        dataSource={alarmData.filter(item => item.actionStatus === 1).map((item, index) => ({
           ...item,
           active: activeStatus[index],
           key: item.id, // Sử dụng một trường duy nhất trong dữ liệu làm key
-        }))}
+        }))}  
         rowSelection={{
           type: "checkbox",
+          onChange: handleRowSelectionChange,
         }}
         pagination={{
           position: ["none"],
