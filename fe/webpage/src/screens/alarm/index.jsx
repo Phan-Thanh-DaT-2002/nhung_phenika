@@ -36,32 +36,39 @@ const Alarm = () => {
   const historyColumns = [
     {
       dataIndex: 'deviceCode',
+      title: 'deviceCode',
       render: (text, record) => <p>{text}</p>,
     },
     {
       dataIndex: 'deviceName',
+      title: 'deviceName',
       render: (text) => <p>{text}</p>,
     },
     {
       dataIndex: 'actionStatus',
+      title: 'actionStatus',
       render: (text) => (
         <p>{text == 2 ? 'Done' : text == 1 ? 'Active' : 'UnActive'}</p>
       ),
     },
     {
       dataIndex: 'title',
+      title: 'title',
       render: (text, record) => <a href="/#">{record.title}</a>,
     },
     {
       dataIndex: 'time',
+      title: 'time',
       render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
     },
     {
       dataIndex: 'createdDate',
+      title: 'createdDate',
       render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
     },
     {
       dataIndex: 'updatedDate',
+      title: 'updatedDate',
       render: (text) => moment(text).format('HH:mm DD/MM/YYYY'),
     },
   ];
@@ -202,8 +209,8 @@ const Alarm = () => {
         // "http://localhost:8388/log-act/?deviceCode=oclock"
         'http://localhost:8388/log-act/?deviceCode=oclock'
       );
-      setAlarmData(response.data.content.items);
-      // setAlarmData(response.data);
+      // setAlarmData(response.data.content.items);
+      setAlarmData(response.data);
       // console.log(999, alarmData);
       // console.log("",response.data.content.items);
     } catch (error) {
@@ -275,6 +282,7 @@ const Alarm = () => {
               columns={historyColumns}
               dataSource={alarmData}
               pagination={{ pageSize: 5 }}
+              // bordered
             />
           </Modal>
           <Col>
