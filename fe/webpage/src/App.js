@@ -79,7 +79,7 @@ const App = () => {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", margin:"0", padding:"0",
+    <div style={{ height: "100vh", margin:"0", padding:"0",
     backgroundImage:`url(${BackGround})`, 
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
@@ -87,17 +87,22 @@ const App = () => {
     backgroundSize: "cover", }}>
 
       <div style={{    
-        margin:"0", padding:"20px 0",
+        height: "10%",
+        margin:"0", padding:"10px 0",
         display: "inline-block",
         position: "relative",
         left: "50%",
         transform: "translateX(-50%)"}}>
         <h1>HỆ THỐNG ĐIỀU KHIỂN CÁC THIẾT BỊ TRONG NHÀ</h1>
       </div>
-      <div><RTC/></div>
+      <div
+      style={{    
+        height: "10%",
+        margin:"10px 0", padding:"10px 0",}}
+      ><RTC/></div>
       <Row gutter={[24, 24]} style={{margin: "0 20px"}}>
       <Col span={8}><Led/></Col>
-      <Col span={8}><Alarm/></Col>
+      {/* <Col span={8}><Alarm/></Col> */}
       {/* <Col span={8}><Alarm/></Col> */}
     </Row>
     </div>

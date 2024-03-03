@@ -55,12 +55,12 @@ const Alarm = () => {
   const handleCreate = async (values) => {
     try {
       // console.log(999, values);
-  
+
       // Lặp qua mỗi giá trị thời gian trong mảng values.time
       for (const timeValue of values.time) {
         // Chuyển đổi thời gian sang định dạng ISO 8601
         const timeISO = new Date(timeValue).toISOString();
-  
+
         // Gửi yêu cầu POST để thêm dữ liệu mới
         await axios.post("http://localhost:8388/log-act", {
           ...values,
@@ -72,10 +72,10 @@ const Alarm = () => {
           createdDate: moment().toISOString(),
           updatedDate: moment().toISOString(),
         });
-  
+
         console.log("Request sent for time:", timeValue);
       }
-  
+
       // Sau khi thêm thành công, tải lại dữ liệu
       fetchData();
       setIsModalVisible(false);
@@ -83,7 +83,7 @@ const Alarm = () => {
       console.error("Error adding alarm:", error);
     }
   };
-  
+
   const handleRowSelectionChange = (selectedRowKeys) => {
     setSelectedRowKeys(selectedRowKeys);
     console.log(555, selectedRowKeys);
@@ -94,13 +94,13 @@ const Alarm = () => {
       // Thu thập các ID của các mục đã chọn
       const selectedIDs = selectedRowKeys;
       console.log(666, selectedIDs);
-  
+
       // Gọi API PATCH để sửa actionStatus của các ID đã chọn thành 2
       await axios.patch("http://localhost:8388/log-act", {
         ids: selectedIDs,
-        actionStatus: 2
+        actionStatus: 2,
       });
-  
+
       // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
       fetchData();
       // Xóa các mục đã chọn khỏi selectedRowKeys
@@ -112,7 +112,7 @@ const Alarm = () => {
 
   useEffect(() => {
     // Connect to WebSocket server on ESP8266
-    ws.current = new WebSocket("ws://192.168.1.178:81");
+    ws.current = new WebSocket("ws://192.168.146.115:81/");
 
     // Set up WebSocket event listeners
     ws.current.onopen = () => {
@@ -289,11 +289,13 @@ const Alarm = () => {
             ),
           },
         ]}
-        dataSource={alarmData.filter(item => item.actionStatus === 1).map((item, index) => ({
-          ...item,
-          active: activeStatus[index],
-          key: item.id, // Sử dụng một trường duy nhất trong dữ liệu làm key
-        }))}  
+        dataSource={alarmData
+          .filter((item) => item.actionStatus === 1)
+          .map((item, index) => ({
+            ...item,
+            active: activeStatus[index],
+            key: item.id, // Sử dụng một trường duy nhất trong dữ liệu làm key
+          }))}
         rowSelection={{
           type: "checkbox",
           onChange: handleRowSelectionChange,
