@@ -31,7 +31,7 @@ public class ResponseFontendDefine {
 	// exception yêu câu nhập emai
 	public static final int CODE_EMAIL = 15;
 	// exception fullname/code đã tồn tại
-	public static final int CODE_FULLNAME_EXIST = 4;
+	public static final int CODE_ERROR_EXIST = 4;
 
 	// exception phone/code không đúng định dạng
 	public static final int CODE_PHONE_EXIST = 5;

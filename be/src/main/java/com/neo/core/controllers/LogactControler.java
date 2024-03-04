@@ -93,6 +93,63 @@ public class LogactControler extends BaseController {
         }
     }
 
+
+    @GetMapping("/searchAll")
+    public ResponseModel doSearchAll(
+            @RequestParam(value = "deviceCode", required = false) String deviceCode,
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(defaultValue = "0") int currentPage,
+            @RequestParam(defaultValue = "10") int perPage) {
+        Pageable paging = PageRequest.of(currentPage, perPage);
+        final String action = "doSearch";
+        StopWatch sw = new StopWatch();
+        sw.start();
+        log.info(START_LOG, action);
+        try {
+            Page<logactionDTO> pageResult = null;
+
+            // Nếu rỗng hoặc chỉ chứa khoảng trắng, đặt = null
+            if (deviceCode != null && deviceCode.trim().isEmpty()) {
+                deviceCode = null;
+            }
+            if (fromDate != null && fromDate.trim().isEmpty()) {
+                fromDate = null;
+            }
+            if (toDate != null && toDate.trim().isEmpty()) {
+                toDate = null;
+            }
+
+            pageResult = service.doSearchAll(Strings.emptyToNull(deviceCode),
+                    Strings.emptyToNull(fromDate),
+                    Strings.emptyToNull(toDate), paging);
+            if ((pageResult == null || pageResult.isEmpty())) {
+                ResponseModel responseModel = new ResponseModel();
+                responseModel.setMessages("Không tìm thấy thiết bị.");
+                responseModel.setStatusCode(HttpStatus.SC_OK + "");
+                responseModel.setCode(ResponseFontendDefine.CODE_NOT_FOUND + "");
+                return responseModel;
+            }
+            PagingResponse<logactionDTO> result = new PagingResponse<>();
+            result.setTotal(pageResult.getTotalElements());
+            result.setItems(pageResult.getContent());
+
+            ResponseModel responseModel = new ResponseModel();
+            responseModel.setContent(result);
+            responseModel.setStatusCode(HttpStatus.SC_OK + "");
+            responseModel.setCode(ResponseFontendDefine.CODE_SUCCESS + "");
+            return responseModel;
+        } catch (Exception e) {
+            throw (e);
+        } finally {
+            sw.stop();
+            // log.info(END_LOG, action, sw.getTotalTimeSeconds());
+        }
+    }
+
+
+
+
     @PostMapping()
     public ResponseModel doCreate(@RequestBody logaction entity, HttpServletRequest request) {
         final String action = "Create";
@@ -117,14 +174,23 @@ public class LogactControler extends BaseController {
                     return responseModel;
                 }
             } else {
-                entity.setDeviceCode(customDeviceCode);
-                entity.setActionLog(customActionLog);
-                entity.setActionStatus(customActionStatus);
-                entity.setTime(customTime);
-                entity.setCreatedDate(currentTime);
-                entity.setUpdateDate(currentTime);
-                entity.setTitle(customTitle);
+                if(customTime.isBefore(currentTime)){
+                    ResponseModel responseModel = new ResponseModel();
+                    responseModel.setStatusCode(HttpStatus.SC_OK + "");
+                    responseModel.setCode(ResponseFontendDefine.CODE_ERROR_EXIST + "");
+                    responseModel.setMessages("Thời gian này ở quá khứ");
+                    return responseModel;
+                }else{
+                    entity.setDeviceCode(customDeviceCode);
+                    entity.setActionLog(customActionLog);
+                    entity.setActionStatus(customActionStatus);
+                    entity.setTime(customTime);
+                    entity.setCreatedDate(currentTime);
+                    entity.setUpdateDate(currentTime);
+                    entity.setTitle(customTitle);
                 service.create(entity);
+                }
+
             }
             messagingTemplate.convertAndSend("/topic/log-act/create", "Log action created!");
             ResponseModel responseModel = new ResponseModel();

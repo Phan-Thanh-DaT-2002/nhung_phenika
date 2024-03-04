@@ -18,8 +18,8 @@ const RTClock = () => {
 
   return (
     <Flex justify="center" align="center" style={{
-        width:'15%',
-        border:'2px solid black'
+      width: '15%',
+      border: '2px solid black'
     }}>
       <Title level={1}>{currentTime.toLocaleTimeString()}</Title>
     </Flex>
