@@ -121,6 +121,26 @@ public class Logactionservicempl implements Logactionservice {
     }
 
     @Override
+    public Page<logactionDTO> doSearchAll(String deviceCode,
+                                       String fromDate,
+                                       String toDate,
+                                       Pageable paging
+    ) {
+
+        LocalDateTime dateFrom = null;
+        LocalDateTime dateTo = null;
+        if(fromDate != null){
+            dateFrom = LocalDateTime.parse(fromDate);
+        }
+        if(toDate != null){
+            dateTo = LocalDateTime.parse(toDate);
+        }
+        return repo.doSearchAll(deviceCode, dateFrom ,dateTo,paging);
+
+    }
+
+
+    @Override
     public logaction findByTime(LocalDateTime time) {
         // TODO Auto-generated method stub
         Optional<logaction> entity = repo.findByTime(time);

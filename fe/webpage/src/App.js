@@ -1,110 +1,194 @@
-import React, { useEffect, useState } from "react";
-import DoorComponent from "./screens/Door";
+import React, { useEffect, useRef, useState } from "react";
 import RTC from "./screens/clock/RTC";
 import Led from "./screens/Led";
 import Alarm from "./screens/alarm";
-import { Grid, Radio,  Col, Row  } from "antd";
-import BackGround from "./assets/images/background.png"
+import { Grid, Radio, Col, Row } from "antd";
+import Door from "./screens/Door";
+import URL from "./components/GlobalConst/globalconst";
+import globalSignal from "./components/GlobalConst/GlobalSignal";
+
 
 const App = () => {
-  const [time, setTime] = useState(new Date());
-  const [latestDoorStatus, setLatestDoorStatus] = useState("LOCK");
-  const [doorData, setDoorData] = useState([]);
+  const [textAlarm, setTextAlarm] = useState();
+  const [alarmData, setAlarmData] = useState();
+  const [textLed, setTextLed] = useState();
+  const [ledData, setLedData] = useState();
+  const [textDoor, setTextDoor] = useState();
+  const [doorData, setDoorData] = useState();
+  const ws = useRef(null);
+  const [message, setMessage] = useState("")
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:8388/log-act/");
-        const jsonData = await response.json();
-        const doorData = jsonData.content.items.filter(
-          (item) => item.deviceCode === "door"
-        );
-
-        // Sort the doorData based on time in descending order
-        const sortedDoorData = doorData.sort(
-          (a, b) => new Date(b.time) - new Date(a.time)
-        );
-
-        // Get the latest command for the door
-        const latestCommand = sortedDoorData[0];
-
-        // Update the latest door status if a new command has been received
-        const latestCommandTime = new Date(latestCommand.time);
-        if (latestCommandTime > time) {
-          setLatestDoorStatus(latestCommand.actionLog);
-        }
-
-        setDoorData(sortedDoorData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+    const messageSignalListener = (message) => {
+      // Xử lý message ở đây
+      console.log("Received message in App:", message);
+      if (message.length > 0) {
+        if (ws.current.readyState === WebSocket.OPEN) ws.current.send(message);
       }
     };
 
-    fetchData();
-  }, [time]);
+    globalSignal.messageSignal.add(messageSignalListener);
 
-  const isDoorLocked = latestDoorStatus === "LOCK";
+    // Cleanup function
+    return () => {
+      globalSignal.messageSignal.remove(messageSignalListener);
+    };
+  }, []);
 
-  const handleToggleLock = async (newLockStatus) => {
-    try {
-      const currentTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
-      const newCommandData = {
-        deviceCode: "led1",
-        deviceName: "cửa",
-        actionStatus: newLockStatus ? 0 : 1,
-        actionLog: newLockStatus ? "LOCK" : "UNLOCK",
-        time: currentTime,
+  const connectWebSocket = async () => {
+    return new Promise((resolve, reject) => {
+      ws.current = new WebSocket(URL);
+
+      ws.current.onopen = () => {
+        ws.current.send("Connected to WebSocket");
+        console.log("Connected to WebSocket");
+        resolve();
       };
 
-      // Send the new command to the server
-      await fetch("http://localhost:8388/log-act/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newCommandData),
-      });
+      ws.current.onerror = (error) => {
+        reject(error);
+      };
 
-      // Update the state without making a new fetch
-      setDoorData((prevDoorData) => [
-        newCommandData,
-        ...prevDoorData,
-      ]);
+      ws.current.onmessage = (event) => {
+        const mes = event.data;
+        // console.log(2, mes);
 
-      setLatestDoorStatus(newLockStatus ? "LOCK" : "UNLOCK");
-      setTime(currentTime);
-    } catch (error) {
-      console.error("Error adding new command:", error);
-    }
+        if (mes === "ALARMStatus_ON") {
+          if (textAlarm !== "ON") {
+            setTextAlarm("ON");
+          }
+        } else if (mes === "ALARMStatus_OFF") {
+          if (textAlarm !== "OFF") {
+            setTextAlarm("OFF");
+          }
+        }
+        if (mes === "LEDStatus_ON" || mes === "LEDStatus_OFF") {
+          setTextLed(mes === "LEDStatus_ON" ? "ON" : "OFF");
+        }
+        if (mes === "DOORStatus_ON" || mes === "DOORStatus_OFF") {
+          setTextDoor(mes === "DOORStatus_ON" ? "ON" : "OFF");
+        }
+        // globalSignal.deviceSignal
+        // Gửi lại thông điệp tương ứng khi nhận được DONE
+        if (mes === "LED_DONE") {
+          // console.log(ledData, ledData.length);
+          if (ledData && ledData.length > 0) {
+            console.log(11111, { id: ledData[0].id, type: "LED" });
+            globalSignal.deviceSignal.dispatch({ id: ledData[0].id, type: "LED" });
+            const messageLed = 'LEDAlarm_TIME:' + convertStringDate(ledData);
+            if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageLed);
+          }
+        }
+        if (mes === "ALARM_DONE") {
+          if (alarmData && alarmData.length > 0) {
+            globalSignal.deviceSignal.dispatch({ id: alarmData[0].id, type: "ALARM" });
+            const messageAlarm = 'ALARM_TIME:' + convertStringDate(alarmData);
+            if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageAlarm);
+          }
+        }
+        if (mes === "DOOR_DONE") {
+          if (doorData && doorData.length > 0) {
+            globalSignal.deviceSignal.dispatch({ id: doorData[0].id, type: "DOOR" });
+            const messageDoor = 'DOORAlarm_TIME:' + convertStringDate(doorData);
+            if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDoor);
+          }
+        }
+
+      };
+
+      ws.current.onclose = () => {
+        console.log("WebSocket closed");
+      };
+
+      // Cleanup function
+      return () => {
+        if (ws.current.readyState === WebSocket.OPEN) {
+          ws.current.close();
+        }
+      };
+    });
   };
 
-  return (
-    <div style={{ height: "100vh", margin:"0", padding:"0",
-    backgroundImage:`url(${BackGround})`, 
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "center",
-    backgroundAttachment: "fixed",
-    backgroundSize: "cover", }}>
+  useEffect(() => {
+    const initializeWebSocket = async () => {
+      try {
+        await connectWebSocket();
+        // Continue with any other initialization after WebSocket connection
+      } catch (error) {
+        console.error("WebSocket connection error:", error);
+      }
+    };
 
-      <div style={{    
-        height: "10%",
-        margin:"0", padding:"10px 0",
+    initializeWebSocket();
+
+    // Cleanup function
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
+  }, []);
+
+  const convertStringDate = (data) => {
+    const dateObject = new Date(data[0].time);
+
+    const year = dateObject.getUTCFullYear();
+    const month = (dateObject.getUTCMonth() + 1).toString().padStart(2, "0"); // Thêm 1 vì tháng bắt đầu từ 0
+    const day = (dateObject.getUTCDate() + 1).toString().padStart(2, "0");
+    const hours = ((dateObject.getUTCHours() + 7) % 24).toString().padStart(2, "0");
+    const minutes = dateObject.getUTCMinutes().toString().padStart(2, "0");
+    const seconds = dateObject.getUTCSeconds().toString().padStart(2, "0");
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  }
+
+  useEffect(() => {
+    const date = [];
+    date.push({ time: new Date() });
+    const messageDate = 'DATETIME:' + convertStringDate(date);
+    // console.log(messageDate);
+    if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDate);
+
+
+    if (alarmData) {
+      const messageAlarm = 'ALARM_TIME:' + convertStringDate(alarmData);
+      if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageAlarm);
+      // console.log(111, messageAlarm);
+    }
+    if (ledData) {
+      const messageLed = 'LEDAlarm_TIME:' + convertStringDate(ledData);
+      if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageLed);
+      // console.log(111, messageLed);
+    }
+    if (doorData) {
+      const messageDoor = 'DOORAlarm_TIME:' + convertStringDate(doorData);
+      if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDoor);
+      // console.log(111, messageDoor);
+    }
+  }, [alarmData, doorData, ledData]);
+
+
+  return (
+    <div style={{ width: "100%", height: "100%" }}>
+      <div style={{
         display: "inline-block",
         position: "relative",
         left: "50%",
-        transform: "translateX(-50%)"}}>
-        <h1>HỆ THỐNG ĐIỀU KHIỂN CÁC THIẾT BỊ TRONG NHÀ</h1>
+        transform: "translateX(-50%)"
+      }}>
+        <h1>HỆ THỐNG ĐIỀU KHIỂN</h1>
       </div>
-      <div
-      style={{    
-        height: "10%",
-        margin:"10px 0", padding:"10px 0",}}
-      ><RTC/></div>
-      <Row gutter={[24, 24]} style={{margin: "0 20px"}}>
-      <Col span={8}><Led/></Col>
-      {/* <Col span={8}><Alarm/></Col> */}
-      {/* <Col span={8}><Alarm/></Col> */}
-    </Row>
+      <div><RTC /></div>
+      <Row gutter={[24, 24]} style={{ margin: "0 20px" }}>
+        {textAlarm && (
+          <Col span={8}><Alarm textAlarm={textAlarm} sendData={setAlarmData} /></Col>
+        )}
+        {textDoor && (
+          <Col span={8}><Door textDoor={textDoor} sendData={setDoorData} /></Col>
+        )}
+        {textLed && (
+          <Col span={8}><Led textLed={textLed} sendData={setLedData} /></Col>
+        )}
+      </Row>
     </div>
   );
 };
