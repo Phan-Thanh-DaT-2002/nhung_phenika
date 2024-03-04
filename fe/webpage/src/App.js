@@ -137,6 +137,10 @@ const App = () => {
 
   useEffect(() => {
     if (alarmData && ledData && doorData) {
+      const date = [];
+      date.push(new Date());
+      const messageDate = 'DATETIME:' + convertStringDate(date);
+      if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDate);
       const messageAlarm = 'ALARM_TIME:' + convertStringDate(alarmData);
       if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageAlarm);
       const messageLed = 'LEDAlarm_TIME:' + convertStringDate(ledData);
