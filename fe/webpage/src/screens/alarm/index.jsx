@@ -349,9 +349,9 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
   };
 
   return (
-    <div className="boxAlarm">
+    <div className="boxAlarm" style={{ backgroundColor: "#fff" }}>
       <Flex>
-        <div style={{ width: "50%", height: "150px" }}>
+        <div style={{ width: "15vw", height: "15vh" }}>
           <img
             alt="logoAlarm"
             style={{
