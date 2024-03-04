@@ -12,6 +12,7 @@ import globalSignal from "../../components/GlobalConst/GlobalSignal";
 
 const Alarm = ({ textAlarm, setMessage, sendData }) => {
   const [alarmData, setAlarmData] = useState([]);
+  const [alarmDataHistory, setAlarmDataHistory] = useState([]);
   const [activeStatus, setActiveStatus] = useState([]);
   const [buttonText, setButtonText] = useState(textAlarm);
   const [espMessage, setEspMessage] = useState();
@@ -85,6 +86,7 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
     },
   ];
   const showHistoryModal = () => {
+    searchAll();
     setHistoryModalVisible(true);
   };
 
@@ -241,8 +243,6 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
       message += "ON";
     }
     globalSignal.messageSignal.dispatch(message);
-    console.log(message);
-    console.log(textAlarm, buttonText);
   };
   useEffect(() => {
     if (alarmData.length > 0) {
@@ -267,10 +267,10 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
     const day = new Date().getTime();
     const newCommand = async () => {
       await axios.post("http://localhost:8388/log-act/", {
-        deviceCode: "led1",
-        deviceName: "đèn",
+        deviceCode: "oclock",
+        deviceName: "đồng hồ",
         actionStatus: 0,
-        actionLog: textAlarm,
+        actionLog: "ON",
         time: dayjs(day),
         title: "Now",
       });
@@ -315,6 +315,15 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
       globalSignal.deviceSignal.remove(deviceSignalListener);
     };
   }, [fetchData]); // Thêm fetchData vào dependency array để đảm bảo useEffect re-run khi fetchData thay đổi
+
+  const searchAll = async () => {
+    try {
+      const response = await axios.get("http://localhost:8388/log-act/searchAll/?deviceCode=alarm")
+      setAlarmDataHistory(response.data.content.items)
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   return (
     <div className="boxAlarm">
@@ -363,7 +372,7 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
           >
             <Table
               columns={historyColumns}
-              dataSource={alarmData}
+              dataSource={alarmDataHistory}
               pagination={{ pageSize: 5 }}
               // bordered
             />

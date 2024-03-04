@@ -8,9 +8,11 @@ import AddModal from '../../components/AddModal';
 import EditModal from '../../components/EditModal';
 import URL from '../../components/GlobalConst/globalconst';
 import globalSignal from '../../components/GlobalConst/GlobalSignal';
+import dayjs from 'dayjs';
 
 const Door = ({ textDoor, setMessage, sendData }) => {
   const [doorData, setDoorData] = useState([]);
+  const [doorDataHistory, setDoorDataHistory] = useState([]);
   const [activeStatus, setActiveStatus] = useState([]);
   const [buttonText, setButtonText] = useState(textDoor);
   const [espMessage, setEspMessage] = useState();
@@ -83,6 +85,7 @@ const Door = ({ textDoor, setMessage, sendData }) => {
     },
   ];
   const showHistoryModal = () => {
+    searchAll();
     setHistoryModalVisible(true);
   };
 
@@ -263,6 +266,68 @@ const Door = ({ textDoor, setMessage, sendData }) => {
     // ws.current.send(message);
   };
 
+  useEffect(() => {
+    const day = new Date().getTime();
+    const newCommand = async () => {
+      await axios.post("http://localhost:8388/log-act/", {
+        deviceCode: "door",
+        deviceName: "Cửa",
+        actionStatus: 0,
+        actionLog: textDoor,
+        time: dayjs(day),
+        title: "Now",
+      });
+    };
+
+    // Chỉ gọi newCommand khi textLed thay đổi
+    if (isMounted.current && textDoor !== buttonText) {
+      newCommand();
+      setButtonText(textDoor);
+    } else {
+      isMounted.current = true;
+    }
+  }, [textDoor, buttonText]);
+
+  const handleDeleteById = async (id) => {
+    try {
+      // Gọi API PATCH để sửa actionStatus của ID thành 2
+      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, id);
+
+      // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
+  const handleDeviceSignal = ({ id, type }) => {
+    if (type === "DOOR") {
+      handleDeleteById(id);
+    }
+  };
+
+  useEffect(() => {
+    const deviceSignalListener = ({ id, type }) => {
+      handleDeviceSignal({ id, type });
+    };
+
+    globalSignal.deviceSignal.add(deviceSignalListener);
+
+    // Cleanup function
+    return () => {
+      globalSignal.deviceSignal.remove(deviceSignalListener);
+    };
+  }, [fetchData]); // Thêm fetchData vào dependency array để đảm bảo useEffect re-run khi fetchData thay đổi
+
+  const searchAll = async () => {
+    try {
+      const response = await axios.get("http://localhost:8388/log-act/searchAll/?deviceCode=door")
+      setDoorDataHistory(response.data.content.items)
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   return (
     <div className="boxdoor">
       <Flex>
@@ -305,7 +370,7 @@ const Door = ({ textDoor, setMessage, sendData }) => {
           >
             <Table
               columns={historyColumns}
-              dataSource={doorData}
+              dataSource={doorDataHistory}
               pagination={{ pageSize: 5 }}
             />
           </Modal>

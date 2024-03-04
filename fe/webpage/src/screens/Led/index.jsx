@@ -13,11 +13,9 @@ import globalSignal from "../../components/GlobalConst/GlobalSignal";
 
 const Led = ({ textLed, setMessage, sendData }) => {
   const [ledData, setLedData] = useState([]);
-  const [activeStatus, setActiveStatus] = useState([]);
+  const [ledDataHistory, setLedDataHistory] = useState([]);
   const [buttonText, setButtonText] = useState(textLed);
-  const [espMessage, setEspMessage] = useState();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const ws = useRef(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -85,6 +83,7 @@ const Led = ({ textLed, setMessage, sendData }) => {
     },
   ];
   const showHistoryModal = () => {
+    searchAll();
     setHistoryModalVisible(true);
   };
 
@@ -251,9 +250,46 @@ const Led = ({ textLed, setMessage, sendData }) => {
   const changeStateClick = () => {
     const message = `LED_${buttonText === "ON" ? "OFF" : "ON"}`;
     globalSignal.messageSignal.dispatch(message);
-
-    // setMessage(message);
   };
+  const searchAll = async () => {
+    try {
+      const response = await axios.get("http://localhost:8388/log-act/searchAll/?deviceCode=led1")
+      setLedDataHistory(response.data.content.items)
+    } catch (e) {
+      
+    }
+  }
+
+  const handleDeleteById = async (id) => {
+    try {
+      // Gọi API PATCH để sửa actionStatus của ID thành 2
+      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, id);
+
+      // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
+  const handleDeviceSignal = ({ id, type }) => {
+    if (type === "LED") {
+      handleDeleteById(id);
+    }
+  };
+
+  useEffect(() => {
+    const deviceSignalListener = ({ id, type }) => {
+      handleDeviceSignal({ id, type });
+    };
+
+    globalSignal.deviceSignal.add(deviceSignalListener);
+
+    // Cleanup function
+    return () => {
+      globalSignal.deviceSignal.remove(deviceSignalListener);
+    };
+  }, [fetchData]);
 
   return (
     <div className="boxled">
@@ -302,7 +338,7 @@ const Led = ({ textLed, setMessage, sendData }) => {
           >
             <Table
               columns={historyColumns}
-              dataSource={ledData}
+              dataSource={ledDataHistory}
               pagination={{ pageSize: 5 }}
             />
           </Modal>
