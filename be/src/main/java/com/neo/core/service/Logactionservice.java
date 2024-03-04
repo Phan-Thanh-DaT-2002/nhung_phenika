@@ -18,6 +18,12 @@ public interface Logactionservice extends IRootService<logaction>  {
                                 Pageable paging
     );
 
+    Page<logactionDTO> doSearchAll(String deviceCode,
+                                String fromDate,
+                                String toDate,
+                                Pageable paging
+    );
+
     logaction findByTime(LocalDateTime time);
 
     ResponseModel deleteMultiple(List<Long> ids, HttpServletRequest request);

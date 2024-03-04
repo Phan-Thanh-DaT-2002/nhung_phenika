@@ -11,7 +11,7 @@ import EditModal from "../../components/EditModal";
 import dayjs from "dayjs";
 import globalSignal from "../../components/GlobalConst/GlobalSignal";
 
-const Led = ({ textLed, setMessage, sendData }) => {
+const Led = ({ textLed, sendData }) => {
   const [ledData, setLedData] = useState([]);
   const [ledDataHistory, setLedDataHistory] = useState([]);
   const [buttonText, setButtonText] = useState(textLed);
@@ -114,16 +114,31 @@ const Led = ({ textLed, setMessage, sendData }) => {
     try {
       console.log(999, values);
       var newArray = [];
-      // Lặp qua mỗi giá trị thời gian trong mảng values.time
+      // Loop through each time value in the values.time array
       for (const timeValue of values.time) {
-        const timeISO = new Date(timeValue).toISOString();
+        const date = new Date(timeValue);
+
+        // Adjust the time to the UTC+7 timezone
+        const adjustedTime = new Date(
+          date.getTime() + date.getTimezoneOffset() * 60000 + 7 * 60 * 60 * 1000
+        );
+
+        // Manually build the formatted time string
+        const year = adjustedTime.getFullYear();
+        const month = String(adjustedTime.getMonth() + 1).padStart(2, "0");
+        const day = String(adjustedTime.getDate()).padStart(2, "0");
+        const hours = String(adjustedTime.getHours()).padStart(2, "0");
+        const minutes = String(adjustedTime.getMinutes()).padStart(2, "0");
+        const seconds = String(adjustedTime.getSeconds()).padStart(2, "0");
+
+        const timeFormatted = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
         newArray.push({
           ...values,
           deviceCode: "led1",
-          deviceName: "đèn",
           actionStatus: 1,
           actionLog: values.actionLog,
-          time: timeISO,
+          time: timeFormatted,
         });
       }
       console.log(22, newArray);
@@ -134,9 +149,6 @@ const Led = ({ textLed, setMessage, sendData }) => {
         "http://localhost:8388/log-act/create-multiple",
         newArray
       );
-
-      // console.log("Request sent for time:", );
-
       // Sau khi thêm thành công, tải lại dữ liệu
       fetchData();
       setIsModalVisible(false);
@@ -154,7 +166,7 @@ const Led = ({ textLed, setMessage, sendData }) => {
     try {
       // Thu thập các ID của các mục đã chọn
       const selectedIDs = selectedRowKeys;
-      console.log(666, selectedIDs);
+      // console.log(666, selectedIDs);
       // Gọi API PATCH để sửa actionStatus của các ID đã chọn thành 2
       await axios.patch(
         "http://localhost:8388/log-act/delete-multiple",
@@ -168,6 +180,7 @@ const Led = ({ textLed, setMessage, sendData }) => {
     } catch (error) {
       console.error("Error deleting items:", error);
     }
+    // fetchData();
   };
   const handleUpdate = async (values) => {
     setEditModalVisible(false);
@@ -178,7 +191,7 @@ const Led = ({ textLed, setMessage, sendData }) => {
         deviceCode: values.deviceCode,
         deviceName: values.deviceName,
         actionStatus: values.actionStatus,
-        actionLog: "ON",
+        actionLog: values.actionLog,
         time: values.time,
         title: values.title,
       });
@@ -193,25 +206,58 @@ const Led = ({ textLed, setMessage, sendData }) => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const day = new Date().getTime();
-    const newCommand = async () => {
-      await axios.post("http://localhost:8388/log-act/", {
-        deviceCode: "led1",
-        deviceName: "đèn",
-        actionStatus: 0,
-        actionLog: textLed,
-        time: dayjs(day),
-        title: "Now",
-      });
-    };
+  const formatTime = (date) => {
+    // Adjust the time to the UTC+7 timezone
+    const adjustedTime = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000 + 7 * 60 * 60 * 1000
+    );
 
-    // Chỉ gọi newCommand khi textLed thay đổi
-    if (isMounted.current && textLed !== buttonText) {
-      newCommand();
-      setButtonText(textLed);
-    } else {
-      isMounted.current = true;
+    // Manually build the formatted time string
+    const year = adjustedTime.getFullYear();
+    const month = String(adjustedTime.getMonth() + 1).padStart(2, "0");
+    const day = String(adjustedTime.getDate()).padStart(2, "0");
+    const hours = String(adjustedTime.getHours()).padStart(2, "0");
+    const minutes = String(adjustedTime.getMinutes()).padStart(2, "0");
+    const seconds = String(adjustedTime.getSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
+
+  useEffect(() => {
+    try {
+      const day = new Date().getTime();
+
+      // Manually format the time to the desired string
+      const formattedTime = formatTime(new Date(day));
+
+      const newCommand = async () => {
+        const res = await axios.post("http://localhost:8388/log-act/", {
+          deviceCode: "led1",
+          deviceName: "đèn",
+          actionStatus: 0,
+          actionLog: textLed,
+          time: formattedTime,
+          title: "Now",
+        });
+        // console.log(res);
+        if (res.data.code === "3") {
+          await axios.patch(`http://localhost:8388/log-act/delete-multiple`, [
+            ledData[0].id,
+          ]);
+          // console.log(ledData[0]);
+          fetchData();
+        }
+      };
+
+      // Chỉ gọi newCommand khi textLed thay đổi
+      if (isMounted.current && textLed !== buttonText) {
+        newCommand();
+        setButtonText(textLed);
+      } else {
+        isMounted.current = true;
+      }
+    } catch (error) {
+      console.log(error);
     }
   }, [textLed, buttonText]);
 
@@ -221,8 +267,11 @@ const Led = ({ textLed, setMessage, sendData }) => {
         // "http://localhost:8388/log-act/?deviceCode=led"
         "http://localhost:8388/log-act/?deviceCode=led1"
       );
-      setLedData(response.data.content.items);
-      sendData(response.data.content.items);
+      // console.log(response);
+      if (response.data.code === "0") {
+        setLedData(response.data.content.items);
+        sendData(response.data.content.items);
+      } else if (response.data.code === "2") setLedData([]);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -253,19 +302,21 @@ const Led = ({ textLed, setMessage, sendData }) => {
   };
   const searchAll = async () => {
     try {
-      const response = await axios.get("http://localhost:8388/log-act/searchAll/?deviceCode=led1")
-      setLedDataHistory(response.data.content.items)
-    } catch (e) {
-      
-    }
-  }
+      const response = await axios.get(
+        "http://localhost:8388/log-act/searchAll/?deviceCode=led1"
+      );
+      setLedDataHistory(response.data.content.items);
+    } catch (e) {}
+  };
 
   const handleDeleteById = async (id) => {
     try {
       // Gọi API PATCH để sửa actionStatus của ID thành 2
-      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, id);
+      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, [id]);
 
       // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
+      console.log(id);
+
       fetchData();
     } catch (error) {
       console.error("Error deleting item:", error);
@@ -273,6 +324,7 @@ const Led = ({ textLed, setMessage, sendData }) => {
   };
 
   const handleDeviceSignal = ({ id, type }) => {
+    console.log(id, type);
     if (type === "LED") {
       handleDeleteById(id);
     }
@@ -292,12 +344,16 @@ const Led = ({ textLed, setMessage, sendData }) => {
   }, [fetchData]);
 
   return (
-    <div className="boxled">
+    <div className="boxLed">
       <Flex>
         <div style={{ width: "50%", height: "150px" }}>
           <img
             alt="logoLed"
-            style={{ width: "60%", margin: "10px" }}
+            style={{
+              width: "60%",
+              margin: "10px",
+              filter: buttonText === "OFF" ? "grayscale(100%)" : "none",
+            }}
             src={logoLed}
           />
         </div>
@@ -314,6 +370,9 @@ const Led = ({ textLed, setMessage, sendData }) => {
               size="large"
               disabled={!buttonText}
               onClick={changeStateClick}
+              style={{
+                backgroundColor: buttonText === "ON" ? "#73d13d" : "#f5222d",
+              }}
             >
               {buttonText}
             </Button>

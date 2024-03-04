@@ -1,16 +1,15 @@
 import './door.css';
-import logoDoor from '../../assets/images/doorIcon.jpg';
+import logoDoor from '../../assets/images/doorIcon.png';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, Flex, Col, Row, Table, Switch, Spin, Modal } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 import AddModal from '../../components/AddModal';
 import EditModal from '../../components/EditModal';
-import URL from '../../components/GlobalConst/globalconst';
 import globalSignal from '../../components/GlobalConst/GlobalSignal';
 import dayjs from 'dayjs';
 
-const Door = ({ textDoor, setMessage, sendData }) => {
+const Door = ({ textDoor, sendData }) => {
   const [doorData, setDoorData] = useState([]);
   const [doorDataHistory, setDoorDataHistory] = useState([]);
   const [activeStatus, setActiveStatus] = useState([]);
@@ -22,6 +21,8 @@ const Door = ({ textDoor, setMessage, sendData }) => {
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const isMounted = useRef(false);
+
 
   const columns = [
     {
@@ -116,16 +117,31 @@ const Door = ({ textDoor, setMessage, sendData }) => {
     try {
       console.log(999, values);
       var newArray = [];
-      // Lặp qua mỗi giá trị thời gian trong mảng values.time
+      // Loop through each time value in the values.time array
       for (const timeValue of values.time) {
-        const timeISO = new Date(timeValue).toISOString();
+        const date = new Date(timeValue);
+
+        // Adjust the time to the UTC+7 timezone
+        const adjustedTime = new Date(
+          date.getTime() + date.getTimezoneOffset() * 60000 + 7 * 60 * 60 * 1000
+        );
+
+        // Manually build the formatted time string
+        const year = adjustedTime.getFullYear();
+        const month = String(adjustedTime.getMonth() + 1).padStart(2, "0");
+        const day = String(adjustedTime.getDate()).padStart(2, "0");
+        const hours = String(adjustedTime.getHours()).padStart(2, "0");
+        const minutes = String(adjustedTime.getMinutes()).padStart(2, "0");
+        const seconds = String(adjustedTime.getSeconds()).padStart(2, "0");
+
+        const timeFormatted = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
         newArray.push({
           ...values,
-          deviceCode: 'door',
-          deviceName: 'Cửa',
+          deviceCode: "door",
           actionStatus: 1,
           actionLog: values.actionLog,
-          time: timeISO,
+          time: timeFormatted,
         });
       }
       console.log(22, newArray);
@@ -133,17 +149,14 @@ const Door = ({ textDoor, setMessage, sendData }) => {
 
       // Gửi yêu cầu POST để thêm dữ liệu mới
       await axios.post(
-        'http://localhost:8388/log-act/create-multiple',
+        "http://localhost:8388/log-act/create-multiple",
         newArray
       );
-
-      // console.log("Request sent for time:", );
-
       // Sau khi thêm thành công, tải lại dữ liệu
       fetchData();
       setIsModalVisible(false);
     } catch (error) {
-      console.error('Error adding door:', error);
+      console.error("Error adding led:", error);
     }
   };
 
@@ -170,6 +183,8 @@ const Door = ({ textDoor, setMessage, sendData }) => {
     } catch (error) {
       console.error('Error deleting items:', error);
     }
+    fetchData();
+
   };
   const handleUpdate = async (values) => {
     setEditModalVisible(false);
@@ -196,30 +211,6 @@ const Door = ({ textDoor, setMessage, sendData }) => {
     setButtonText(textDoor);
   }, [textDoor]);
 
-  // useEffect(() => {
-  //   // Connect to WebSocket server on ESP8266
-  //   ws.current = new WebSocket(URL);
-
-  //   // Set up WebSocket event listeners
-  //   ws.current.onopen = () => {
-  //     ws.current.send('Connected to WebSocket');
-  //     console.log('Connected to WebSocket');
-  //   };
-
-  //   ws.current.onmessage = (event) => {
-  //     // Nhận thông điệp từ server và chuyển đổi nó thành trạng thái buttonText
-  //     const message = event.data;
-  //     if (message === "DOORStatus_ON" || message === "DOORStatus_OFF") {
-  //       setButtonText(message === "DOORStatus_ON" ? "ON" : "OFF");
-  //     }
-  //   };
-
-  //   // Cleanup function
-  //   return () => {
-  //     ws.current.close(); // Đóng kết nối WebSocket khi component bị unmount
-  //   };
-  // }, []);
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -230,8 +221,10 @@ const Door = ({ textDoor, setMessage, sendData }) => {
         // "http://localhost:8388/log-act/?deviceCode=oclock"
         'http://localhost:8388/log-act/?deviceCode=door'
       );
-      setDoorData(response.data.content.items);
-      sendData(response.data.content.items);
+      if (response.data.code === "0") {
+        setDoorData(response.data.content.items);
+        sendData(response.data.content.items);
+      } else if (response.data.code === "2") setDoorData([]);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -265,18 +258,42 @@ const Door = ({ textDoor, setMessage, sendData }) => {
     // setMessage(message)
     // ws.current.send(message);
   };
+  const formatTime = (date) => {
+    // Adjust the time to the UTC+7 timezone
+    const adjustedTime = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000 + 7 * 60 * 60 * 1000
+    );
+
+    // Manually build the formatted time string
+    const year = adjustedTime.getFullYear();
+    const month = String(adjustedTime.getMonth() + 1).padStart(2, "0");
+    const day = String(adjustedTime.getDate()).padStart(2, "0");
+    const hours = String(adjustedTime.getHours()).padStart(2, "0");
+    const minutes = String(adjustedTime.getMinutes()).padStart(2, "0");
+    const seconds = String(adjustedTime.getSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
 
   useEffect(() => {
     const day = new Date().getTime();
+
     const newCommand = async () => {
-      await axios.post("http://localhost:8388/log-act/", {
+      const res = await axios.post("http://localhost:8388/log-act/", {
         deviceCode: "door",
         deviceName: "Cửa",
         actionStatus: 0,
         actionLog: textDoor,
-        time: dayjs(day),
+        time: formatTime(new Date(day)),
         title: "Now",
       });
+      if (res.data.code === "3") {
+        await axios.patch(`http://localhost:8388/log-act/delete-multiple`, [
+          doorData[0].id,
+        ]);
+        // console.log(ledData[0]);
+        fetchData();
+      }
     };
 
     // Chỉ gọi newCommand khi textLed thay đổi
@@ -290,10 +307,8 @@ const Door = ({ textDoor, setMessage, sendData }) => {
 
   const handleDeleteById = async (id) => {
     try {
-      // Gọi API PATCH để sửa actionStatus của ID thành 2
-      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, id);
+      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, [id]);
 
-      // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
       fetchData();
     } catch (error) {
       console.error("Error deleting item:", error);
@@ -329,12 +344,16 @@ const Door = ({ textDoor, setMessage, sendData }) => {
   }
 
   return (
-    <div className="boxdoor">
+    <div className="boxDoor">
       <Flex>
         <div style={{ width: '50%', height: '150px' }}>
           <img
             alt="logoDoor"
-            style={{ width: '60%', margin: '10px' }}
+            style={{
+              width: "60%",
+              margin: "10px",
+              filter: buttonText === "OFF" ? "grayscale(100%)" : "none",
+            }}
             src={logoDoor}
           />
         </div>
@@ -346,10 +365,17 @@ const Door = ({ textDoor, setMessage, sendData }) => {
           style={{ width: '50%', height: '150px' }}
         >
           <Col>
-            <Button type="primary" size="large" disabled={!buttonText} onClick={changeStateClick}>
-              {buttonText}
+            <Button
+              type="primary"
+              size="large"
+              disabled={!buttonText}
+              onClick={changeStateClick}
+              style={{ backgroundColor: buttonText === "ON" ? "#73d13d" : "#f5222d" }}
+            >
+              {buttonText === "ON" ? "UNLOCK" : "LOCK"}
             </Button>
           </Col>
+
           <EditModal
             visible={editModalVisible}
             initialValues={selectedRecord || {}}

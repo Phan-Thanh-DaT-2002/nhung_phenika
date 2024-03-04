@@ -51,6 +51,7 @@ const App = () => {
 
       ws.current.onmessage = (event) => {
         const mes = event.data;
+        // console.log(2, mes);
 
         if (mes === "ALARMStatus_ON") {
           if (textAlarm !== "ON") {
@@ -69,25 +70,30 @@ const App = () => {
         }
         // globalSignal.deviceSignal
         // Gửi lại thông điệp tương ứng khi nhận được DONE
-        switch (mes) {
-          case "LED_DONE":
+        if (mes === "LED_DONE") {
+          // console.log(ledData, ledData.length);
+          if (ledData && ledData.length > 0) {
+            console.log(11111, { id: ledData[0].id, type: "LED" });
             globalSignal.deviceSignal.dispatch({ id: ledData[0].id, type: "LED" });
             const messageLed = 'LEDAlarm_TIME:' + convertStringDate(ledData);
             if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageLed);
-            break;
-          case "ALARM_DONE":
+          }
+        }
+        if (mes === "ALARM_DONE") {
+          if (alarmData && alarmData.length > 0) {
             globalSignal.deviceSignal.dispatch({ id: alarmData[0].id, type: "ALARM" });
             const messageAlarm = 'ALARM_TIME:' + convertStringDate(alarmData);
             if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageAlarm);
-            break;
-          case "DOOR_DONE":
+          }
+        }
+        if (mes === "DOOR_DONE") {
+          if (doorData && doorData.length > 0) {
             globalSignal.deviceSignal.dispatch({ id: doorData[0].id, type: "DOOR" });
             const messageDoor = 'DOORAlarm_TIME:' + convertStringDate(doorData);
             if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDoor);
-            break;
-          default:
-            break;
+          }
         }
+
       };
 
       ws.current.onclose = () => {
@@ -136,21 +142,30 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (alarmData && ledData && doorData) {
-      const date = [];
-      date.push(new Date());
-      const messageDate = 'DATETIME:' + convertStringDate(date);
-      if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDate);
+    const date = [];
+    date.push({ time: new Date() });
+    const messageDate = 'DATETIME:' + convertStringDate(date);
+    // console.log(messageDate);
+    if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDate);
+
+
+    if (alarmData) {
       const messageAlarm = 'ALARM_TIME:' + convertStringDate(alarmData);
       if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageAlarm);
+      // console.log(111, messageAlarm);
+    }
+    if (ledData) {
       const messageLed = 'LEDAlarm_TIME:' + convertStringDate(ledData);
       if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageLed);
+      // console.log(111, messageLed);
+    }
+    if (doorData) {
       const messageDoor = 'DOORAlarm_TIME:' + convertStringDate(doorData);
       if (ws.current.readyState === WebSocket.OPEN) ws.current.send(messageDoor);
-      console.log(messageAlarm, messageLed, messageDoor);
+      // console.log(111, messageDoor);
     }
+  }, [alarmData, doorData, ledData]);
 
-  }, alarmData, doorData, ledData)
 
   return (
     <div style={{ width: "100%", height: "100%" }}>

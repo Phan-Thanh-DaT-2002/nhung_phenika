@@ -62,8 +62,8 @@ const AddModal = ({ visible, onCreate, onCancel }) => {
     if (checkedList.length === 0) {
       return (
         <DatePicker
-          showTime={{ format: "HH:mm" }}
-          format="YYYY-MM-DD HH:mm"
+          showTime={{ format: "HH:mm:ss" }}
+          format="YYYY-MM-DD HH:mm:ss"
           style={{ width: "100%" }}
         />
       );
@@ -72,7 +72,7 @@ const AddModal = ({ visible, onCreate, onCancel }) => {
         <Space direction="vertical" size={12}>
           <RangePicker
             disabledDate={disabledDate}
-            format="YYYY-MM-DD HH:mm"
+            format="YYYY-MM-DD HH:mm:ss"
             onChange={onChangeTime}
             showTime={showtime}
           />
@@ -160,10 +160,12 @@ const AddModal = ({ visible, onCreate, onCancel }) => {
         <Form.Item>
           <Radio.Group
             onChange={handleChoose}
-            defaultValue={"ON"}
+            defaultValue={1}
             // disabled={deviceCode === "oclock"}
           >
-            <Radio value={"ON"}>Thiết bị Mở</Radio>
+            <Radio value={"ON"} defaultChecked>
+              Thiết bị Mở
+            </Radio>
             <Radio value={"OFF"}>Thiết bị Đóng</Radio>
           </Radio.Group>
         </Form.Item>

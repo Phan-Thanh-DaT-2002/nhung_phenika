@@ -117,16 +117,31 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
     try {
       console.log(999, values);
       var newArray = [];
-      // Lặp qua mỗi giá trị thời gian trong mảng values.time
+      // Loop through each time value in the values.time array
       for (const timeValue of values.time) {
-        const timeISO = new Date(timeValue).toISOString();
+        const date = new Date(timeValue);
+
+        // Adjust the time to the UTC+7 timezone
+        const adjustedTime = new Date(
+          date.getTime() + date.getTimezoneOffset() * 60000 + 7 * 60 * 60 * 1000
+        );
+
+        // Manually build the formatted time string
+        const year = adjustedTime.getFullYear();
+        const month = String(adjustedTime.getMonth() + 1).padStart(2, "0");
+        const day = String(adjustedTime.getDate()).padStart(2, "0");
+        const hours = String(adjustedTime.getHours()).padStart(2, "0");
+        const minutes = String(adjustedTime.getMinutes()).padStart(2, "0");
+        const seconds = String(adjustedTime.getSeconds()).padStart(2, "0");
+
+        const timeFormatted = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
         newArray.push({
           ...values,
           deviceCode: "oclock",
-          deviceName: "Đồng hồ",
           actionStatus: 1,
           actionLog: "ON",
-          time: timeISO,
+          time: timeFormatted,
         });
       }
       console.log(22, newArray);
@@ -137,14 +152,11 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
         "http://localhost:8388/log-act/create-multiple",
         newArray
       );
-
-      // console.log("Request sent for time:", );
-
       // Sau khi thêm thành công, tải lại dữ liệu
       fetchData();
       setIsModalVisible(false);
     } catch (error) {
-      console.error("Error adding alarm:", error);
+      console.error("Error adding led:", error);
     }
   };
 
@@ -171,6 +183,7 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
     } catch (error) {
       console.error("Error deleting items:", error);
     }
+    // fetchData();
   };
   const handleUpdate = async (values) => {
     setEditModalVisible(false);
@@ -207,8 +220,10 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
         // "http://localhost:8388/log-act/?deviceCode=oclock"
         "http://localhost:8388/log-act/?deviceCode=oclock"
       );
-      setAlarmData(response.data.content.items);
-      sendData(response.data.content.items);
+      if (response.data.code === "0") {
+        setAlarmData(response.data.content.items);
+        sendData(response.data.content.items);
+      } else if (response.data.code === "2") setAlarmData([]);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -244,36 +259,42 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
     }
     globalSignal.messageSignal.dispatch(message);
   };
-  useEffect(() => {
-    if (alarmData.length > 0) {
-      const dateObject = new Date(alarmData[0].time);
 
-      const year = dateObject.getUTCFullYear();
-      const month = (dateObject.getUTCMonth() + 1).toString().padStart(2, "0"); // Thêm 1 vì tháng bắt đầu từ 0
-      const day = dateObject.getUTCDate().toString().padStart(2, "0");
-      const hours = dateObject.getUTCHours().toString().padStart(2, "0");
-      const minutes = dateObject.getUTCMinutes().toString().padStart(2, "0");
-      const seconds = dateObject.getUTCSeconds().toString().padStart(2, "0");
+  const formatTime = (date) => {
+    // Adjust the time to the UTC+7 timezone
+    const adjustedTime = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000 + 7 * 60 * 60 * 1000
+    );
 
-      const formattedTime = `${year}${month}${day}${
-        hours + 7
-      }${minutes}${seconds}`;
-      // console.log(formattedTime);
-      // ws.current.send(message);
-    }
-  }, [alarmData]);
+    // Manually build the formatted time string
+    const year = adjustedTime.getFullYear();
+    const month = String(adjustedTime.getMonth() + 1).padStart(2, "0");
+    const day = String(adjustedTime.getDate()).padStart(2, "0");
+    const hours = String(adjustedTime.getHours()).padStart(2, "0");
+    const minutes = String(adjustedTime.getMinutes()).padStart(2, "0");
+    const seconds = String(adjustedTime.getSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  };
 
   useEffect(() => {
     const day = new Date().getTime();
     const newCommand = async () => {
-      await axios.post("http://localhost:8388/log-act/", {
+      const res = await axios.post("http://localhost:8388/log-act/", {
         deviceCode: "oclock",
         deviceName: "đồng hồ",
         actionStatus: 0,
         actionLog: "ON",
-        time: dayjs(day),
+        time: formatTime(new Date(day)),
         title: "Now",
       });
+      if (res.data.code === "3") {
+        await axios.patch(`http://localhost:8388/log-act/delete-multiple`, [
+          alarmData[0].id,
+        ]);
+        // console.log(ledData[0]);
+        fetchData();
+      }
     };
 
     // Chỉ gọi newCommand khi textLed thay đổi
@@ -288,7 +309,7 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
   const handleDeleteById = async (id) => {
     try {
       // Gọi API PATCH để sửa actionStatus của ID thành 2
-      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, id);
+      await axios.patch(`http://localhost:8388/log-act/delete-multiple`, [id]);
 
       // Nếu thành công, làm mới dữ liệu để cập nhật giao diện
       fetchData();
@@ -318,12 +339,14 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
 
   const searchAll = async () => {
     try {
-      const response = await axios.get("http://localhost:8388/log-act/searchAll/?deviceCode=alarm")
-      setAlarmDataHistory(response.data.content.items)
+      const response = await axios.get(
+        "http://localhost:8388/log-act/searchAll/?deviceCode=oclock"
+      );
+      setAlarmDataHistory(response.data.content.items);
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
   return (
     <div className="boxAlarm">
@@ -331,7 +354,11 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
         <div style={{ width: "50%", height: "150px" }}>
           <img
             alt="logoAlarm"
-            style={{ width: "60%", margin: "10px" }}
+            style={{
+              width: "60%",
+              margin: "10px",
+              filter: buttonText === "OFF" ? "grayscale(100%)" : "none",
+            }}
             src={logoAlarm}
           />
         </div>
@@ -348,6 +375,9 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
               size="large"
               disabled={!buttonText}
               onClick={changeStateClick}
+              style={{
+                backgroundColor: buttonText === "ON" ? "#73d13d" : "#f5222d",
+              }}
             >
               {buttonText}
             </Button>
@@ -373,7 +403,11 @@ const Alarm = ({ textAlarm, setMessage, sendData }) => {
             <Table
               columns={historyColumns}
               dataSource={alarmDataHistory}
-              pagination={{ pageSize: 5 }}
+              pagination={{ pageSize: 10 }}
+              bodyStyle={{
+                overflowY: "auto",
+                maxHeight: "calc(100vh - 200px)",
+              }}
               // bordered
             />
           </Modal>
